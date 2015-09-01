@@ -1,0 +1,483 @@
+\documentclass{article}
+
+\usepackage{lmodern}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[francais]{babel}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+
+\usepackage{amsthm}
+\newtheorem{lemme}{Lemme}
+
+\usepackage{listings}
+\lstset{
+  numbers=left,
+  escapeinside={(*}{*)},
+  basicstyle=\footnotesize,
+  columns=flexible,
+  breaklines=true,
+  frame=single,
+  literate={é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1,
+  morekeywords={si,alors,sinon},
+}
+
+\title{
+  {\bf Algorithmique Répartie Avancée} \\
+  Rapport de projet}
+\author{
+  Armel   \textsc{Mangean} -- \oldstylenums{3262313} \\
+  Idrissa \textsc{Sokhona} -- \oldstylenums{3101058}}
+\date{Octobre 2013}
+
+\begin{document}
+
+  \maketitle
+
+  \section{Algorithme}
+    Nous considérons un algorithme probabiliste d'exploration de cylindres
+    carrés {\bf de côté $S$ impair et superieur ou égal à 7}.
+
+    Cet algorithme requière {\bf exactement $k$ = 4 robots} doués de détection faible
+    de multiplicité. 
+
+    \subsection{$Z$-configuration}
+      La {\bf Phase Set-Up} se termine lorsque, depuis une configuration
+      quelconque, on atteint une $Z$-configuration.  La figure
+      \ref{fig:z-configuration} donne une représentation d'une $Z$-configuration
+      pour un cylindre carré de côté $S = 7$. \footnote{Nous avons pris la
+        libérté d'aider certains de nos camarades en partageant les sources
+        \LaTeX{} de ce schéma.} \medskip
+
+      \begin{figure}[h]
+        \centering
+        \begin{tikzpicture}
+          \draw[ultra thick] (0,4) -- (8,4);
+          \foreach \i in {1,...,7} {
+            \draw[dashed]           (\i,1) -- (\i,7);
+            \draw[dashed]           (0,\i) -- (8,\i);
+            \draw[thick,fill=white] (8,\i) circle (1mm) {};
+            \draw[thick,fill=black] (0,\i) circle (1mm) {};
+          }
+
+          \node at (3,3) [circle,draw,ultra thick,fill=white] {};
+          \node at (3,4) [circle,draw,ultra thick,fill=white] {};
+          \node at (4,4) [circle,draw,ultra thick,fill=white] {};
+          \node at (4,5) [circle,draw,ultra thick,fill=white] {};
+        \end{tikzpicture}
+        \caption{Une $Z$-configuration sur un cylindre carré de côté 7.}
+        \label{fig:z-configuration}
+      \end{figure}
+
+      Une configuration $C$ est appelée $Z$-configuration si est seulement si
+      les trois conditions suivantes sont satisfaites :
+        \begin{enumerate}
+          \item $C$ ne contient aucune tour,
+          \item Exactement deux robots sont localisés sur l'anneau central, et
+          \item Deux robots sont localisés sur deux n\oe{}uds voisins
+            de l'anneau central tel que chacun des robots {\bf sur
+              l'anneau central} aient exactement deux robots dans leur
+              voisinnage.
+        \end{enumerate} \medskip
+
+      Afin que les deux robots localisés sur l'anneau central aient chacun
+      exactement deux robots dans leur voisinnage il est nécessaire que ceux-ci
+      soient voisins entre-eux.
+
+    \subsection{Phase Tour}
+
+      La phase tour est décrite dans l'algorithme \ref{lst:phasetower}. Partant
+      d'une $Z$-configuration le système finira par atteindre une configuration
+      où une tour est formée. Dans ce but nous procédons comme suit. Soient
+      $R_1$ et $R_2$ les deux robots localisés sur l'anneau central. $R_1$ et
+      $R_2$ essaient de bouger l'un vers l'autre. Finalement, seul un de ces
+      robots bougera et la tour sera formée comme prouvé dans les deux lemmes
+      suivants.
+
+%%%
+\lstset{title={Algorithme \ref{lst:phasetower} {\it Phase Tour}.}}
+\begin{lstlisting}[label=lst:phasetower]
+  si je suis localisé sur l'anneau central alors
+    essai de déplacement vers le noeud voisin de l'anneau central occupé par un robot
+\end{lstlisting}
+%%%
+
+      \begin{lemme}\label{lem:tower}
+        Soit $\gamma$ une $Z$-configuration. Si $\gamma$ est la configuration à
+        l'instant $t$, alors la configuration à l'instant $t + 1$ est soit
+        identique à $\gamma$, soit la configuration contenant une tour.
+      \end{lemme}
+
+      \paragraph{Preuve.} Soient $R_1$ et $R_2$ les robots localisés sur l'anneau
+        central dans $\gamma$. Dans $\gamma$ tous les robots executent
+        l'algorithme \ref{lst:phasetower}. Donc, depuis $\gamma$ seul $R_1$ et
+        $R_2$ peuvent bouger : $R_1$ peut bouger vers $R_2$ et inversement
+        (cf. algorithme \ref{lst:phasetower}). Quand l'un ou les deux robots
+        bougent on obtient soit une configuration contenant une tour soit une
+        $Z$-configuration identique à $\gamma$ et le lemme tient. \qed
+
+      \begin{lemme}
+        Depuis une $Z$-configuration, le système atteint une configuration
+        contenant une tour en un temps fini.
+      \end{lemme}
+
+      \paragraph{Preuve.} Par le lemme \ref{lem:tower}, nous savons que partant
+        d'une $Z$-configuration $\gamma$, le système soit reste dans la même
+        configuration soit atteint une configuration contenant une tour.
+
+        Soient $R_1$ et $R_2$ les deux robots localisé sur l'anneau
+        central. Seul $R_1$ et $R_2$ peuvent (de manière probablistique) décider
+        de bouger dans $\gamma$. De plus, par la propriété d'équité ({\it
+          fairness}), l'un ou les deux robots seront finalement activés. Malgrès
+        le choix de l'ordonnanceur, il y a une probabilité strictement positive
+        qu'un seul des robots decide de manière probabiliste de bouger. Dans ce
+        cas le système atteint une configuration contenant une tour
+        (cf. algorithme \ref{lst:phasetower}). \qed \medskip
+
+      Nous considérerons dans la suite de ce document une configuration issue de
+      la phase tour comme une configuration de type {\it Tour}.
+
+    \subsection{Phase Orientation}
+      \label{sec:orientation}
+
+      Une orientation du cylindre carré est determinée de la manière qui
+      suit. La configuration considérée contient une tour $T$ formée de deux
+      robots ainsi qu'un troisième robot $u$ distinct des deux premiers et
+      localisé sur un autre noeud. Nous pouvons alors déterminer un système de
+      coordonnées où chaque n\oe{}ud a des coordonnées uniques (cf. figure
+      \ref{fig:orientation}). La tour $T$ définie l'origine du repère et a donc
+      pour coordonnées (0,0). Considérant le plus petit rectangle englobant
+      $R_{Tu}$, on peut attribuer à $u$ les coordonnées
+      ($\alpha_{Tu}$,$\beta_{Tu}$). L'abscisse est donné par le vecteur reliant
+      le n\oe{}ud $T$ au n\oe{}ud de coordonnées ($\alpha_{Tu}$,0). L'ordonnée
+      est donné par le vecteur reliant le n\oe{}ud $T$ au n\oe{}ud de
+      coordonnées (0,$\beta_{Tu}$).
+
+      Afin, de pouvoir différencier l'abscisse de l'ordonnée il est nécessaire
+      de pouvoir différencier $\alpha_{Tu}$ de $\beta_{Tu}$. Pour ce faire on
+      considère le plus petit rectangle englobant $R_{Tu}$ tel que $\alpha_{Tu}$
+      soit strictement inferieur à $\beta_{Tu}$. \medskip
+
+      \begin{figure}[h]
+        \centering
+        \begin{tikzpicture}
+          \draw[fill=lightgray] (3,4) rectangle (4,6);
+          \node at (3,6) [below right] {$R_{Tu}$}; 
+          \draw[ultra thick] (0,4) -- (8,4);
+          \foreach \i in {1,...,7} {
+            \draw[dashed]           (\i,1) -- (\i,7);
+            \draw[dashed]           (0,\i) -- (8,\i);
+            \draw[thick,fill=white] (8,\i) circle (1mm) {};
+            \draw[thick,fill=black] (0,\i) circle (1mm) {};
+          }
+
+          \newcount\x \newcount\y
+          \foreach \i in {1,...,7} {
+            \foreach \j in {1,...,7} {
+              \x=\i \advance\x by -3
+              \y=\j \advance\y by -4
+              \node at (\i,\j) [above right] {\tiny (\the\x,\the\y)};
+            }
+          }
+
+          \node at (3,3) [circle,fill=white,draw,ultra thick]       {};
+          \node at (3,4) [circle,fill=white,draw,ultra thick]       {};
+          \node at (3,4) [circle,fill=white,draw,ultra thick,right] {};
+          \node at (4,6) [circle,fill=white,draw,ultra thick]       {};
+        \end{tikzpicture}
+        \caption{Une configuration de type tour sur un cylindre carré de côté 7.}
+        \label{fig:orientation}
+      \end{figure}
+
+      Nous considérerons dans la suite de ce document une configuration issue de
+      la phase tour comme une configuration de type {\it Orienté}.
+
+    \subsection{Phase Exploration}
+
+      La première phase de l'algorithme d'exploration (cf. algorithme
+      \ref{lst:phaseexplo1}) nécessite les trois conditions indiquées
+      ci-dessous.
+
+      \begin{enumerate}
+        \item L'orientation construite par le robot $\ast$ doit être
+          non-ambigüe,
+        \item Robot $\circ$ doit être capable de visiter les deux carrés centrès
+          sur la tour, et
+        \item Robot $\ast$ doit être capable de se décaler d'au moins trois
+          lignes de la tour.
+      \end{enumerate}
+
+      \paragraph{Preuve.}
+        \begin{enumerate}
+          \item La construction d'une orientation non-ambigüe nécessite
+            l'utilisation d'un plus petit rectangle englobant $R_{Tu}$ tel que
+            $0 < \alpha_{Tu} < \beta_{Tu} \geq 2$.
+            
+          \item Lorsque Robot $\circ$ visite le second carré centré sur la tour
+            il se décale d'au moins deux lignes de la tour. Il génère alors un
+            plus petit rectangle englobant $R_{T\circ}$ tel que $\beta_{T\circ}
+            \geq 2$.
+
+          \item Lorsque Robot $\ast$ se décale d'au moins trois lignes de la
+            tour il génère le plus petit rectangle englobant $R_{T\ast}$ tel que
+            $\beta_{T\ast} \geq 3$.
+
+        \end{enumerate} \medskip
+
+        Ces trois conditions réunies impliquent $S \geq 7$. \qed
+
+%%%
+\lstset{title={Algorithme \ref{lst:phaseexplo1} {\it Phase Exploration 1}.}}
+\begin{lstlisting}[label=lst:phaseexplo1]
+  si (*$R_{T\ast}$*) est un (1, 1)-rectangle alors
+    si je suis (*$\ast$*) alors
+      déplacement dans la direction opposée à (*$\circ$*)
+
+  sinon soit (*$S_\ast$*) le système de coordonnées construit par (*$R_{T\ast}$*)
+    si (*$R_{T\ast}$*) est un (1, 2)-rectangle alors
+      si (*$\circ = (-1, -1)$*) alors
+        si je suis (*$\ast$*) alors déplacement en (1, 3)
+      sinon si je suis (*$\circ$*) alors exécuter procédure Carré(*$(1)$*)
+
+    sinon si (*$R_{T\ast}$*) est un (1, 3)-rectangle alors
+      si (*$\circ = (-1, -1)$*) alors
+        si je suis (*$\ast$*) alors déplacement en (2, 3)
+      sinon si (*$\circ = (-2, -2)$*) alors
+        si je suis (*$\circ$*) alors déplacement en (*$(-2, -1)$*)
+
+    sinon si (*$R_{T\ast}$*) est un (2, 3)-rectangle alors
+      si (*$\circ = (-2, -2)$*) alors
+        si je suis (*$\ast$*) alors déplacement en (1, 3)
+      sinon si je suis (*$\circ$*) alors exécuter procédure Carré(*$(2)$*)
+\end{lstlisting}
+%%%
+
+      \begin{lemme}
+        Soit $\gamma$ une configuration de type Tour. Si $\gamma$ est la
+        configuration à l'instant $t$ alors la configuration à l'instant $t + 1$
+        est une configuration de type Orienté.
+      \end{lemme}
+      
+      \paragraph{Preuve.} Soient $\ast$ ($\circ$) le robot le plus loin
+        (resp. proche) de $T$ dans $\gamma$. Dans $\gamma$ tous les robots 
+        executent l'algorithme \ref{lst:phaseexplo1}. Seul $\ast$ peut bouger,
+        il se déplace dans la direction opposé à $\circ$ (cf. algorithme
+        \ref{lst:phaseexplo1}). On obtient alors une configuration de type
+        Orienté et le lemme tient. \qed \medskip
+
+      Le comportement de la second phase de l'algorithme d'exploration est
+      décrite par la figure \ref{fig:phaseexplo2}.
+
+      \begin{figure}[h]
+        \centering
+        \tikzstyle{fleche} = [->,>=stealth',shorten >=5pt,thick]
+        \begin{tikzpicture}[scale=0.7, transform shape]
+
+          \draw[ultra thick] (0,8) -- (16,8);
+          \foreach \i in {1,...,15} {
+            \draw[dashed]           (\i, 1) -- (\i,15);
+            \draw[dashed]           ( 0,\i) -- (16,\i);
+            \draw[thick,fill=white] (16,\i) circle (1mm) {};
+            \draw[thick,fill=black] ( 0,\i) circle (1mm) {};
+          }
+
+          \node at (6,9) [circle,fill=white,draw,ultra thick]       {};
+          \node at (8,8) [circle,fill=white,draw,ultra thick]       {};
+          \node at (8,8) [circle,fill=white,draw,ultra thick,right] {};
+
+          \node at (9,5) [circle,fill=black,draw,ultra thick]       {};
+          \node at (8.5,5) [above] {\bf 1};
+          \draw[thick]  ( 9, 5) to ( 5, 5);
+          \draw[thick]  ( 5, 5) to ( 5,11);
+          \draw[thick]  ( 5,11) to (11,11);
+          \draw[fleche] (11,11) to (11, 5);
+
+          \newcount\a
+          \newcount\b
+          \newcount\c
+          \foreach \i in {0,...,3} {
+            \a 11 \advance \a by  \i
+            \b  5 \advance \b by -\i
+            \node at (\a,\b) [circle,fill=black,draw,ultra thick] {};
+
+            \c 2 \advance \c by \i
+            \node at (\a,\b-.5) [left] {\bf\the\c};
+            \draw[thick] (\a,\b) to (\a,\b-1);
+
+            \advance \b by -1
+            \draw[thick]  (\a,\b) to (\b,\b); \advance \a by 1
+            \draw[thick]  (\b,\b) to (\b,\a); 
+            \draw[thick]  (\b,\a) to (\a,\a);
+            \draw[fleche] (\a,\a) to (\a,\b);
+          }
+
+          \node at (15,1) [circle,fill=black,draw,ultra thick] {};
+        \end{tikzpicture}
+        \caption{Seconde phase d'exploration.}
+        \label{fig:phaseexplo2}
+      \end{figure}
+
+    \subsection{Phase Set-Up}
+      \subsubsection{Discrimination}
+
+        \begin{figure}[h]
+          \centering
+          \tikzstyle{fleche} = [->,>=stealth',shorten >=5pt,thick]
+          \begin{tikzpicture}
+            \draw[ultra thick] (0,4) -- (8,4);
+            \foreach \i in {1,...,7} {
+              \draw[dashed]           (\i,1) -- (\i,7);
+              \draw[dashed]           (0,\i) -- (8,\i);
+              \draw[thick,fill=white] (8,\i) circle (1mm) {};
+              \draw[thick,fill=black] (0,\i) circle (1mm) {};
+            }
+            
+            \draw[fleche] (2,5) to (2,6); \node at (2,5.5) [left] {\bf try};
+            \draw[fleche] (7,5) to (7,6); \node at (7,5.5) [left] {\bf try};
+            \node at (2,5) [circle,draw,ultra thick,fill=white] {};
+            \node at (2,6) [circle,draw,ultra thick,fill=black] {};
+            \node at (4,1) [circle,draw,ultra thick,fill=black] {};
+            \node at (5,2) [circle,draw,ultra thick,fill=black] {};
+            \node at (7,5) [circle,draw,ultra thick,fill=black] {};
+          \end{tikzpicture}
+          \caption{Un exemple de discrimination pour la phase Set-Up.}
+          \label{fig:discri}
+        \end{figure}
+
+        L'algorithme réalisant la phase Set-Up présenté ici nécessite à chaque
+        étape la discrimination d'un unique robot parmi les $k$ y
+        participant. Ce dernier est déterminé comme étant le robot ayant la
+        distance minimale non nulle à l'anneau central. Si plusieurs robots
+        partagent cette même distance minimale on réalise un déplacement
+        probabiliste sur la chaine jusqu'à obtenir un unique robot ayant la
+        distance minimale à l'anneau central. La figure \ref{fig:discri} donne
+        un exemple d'une telle discrimination.
+
+      \subsubsection{Principe}
+      
+        Ayant un robot discriminé à chaque itération de l'algorithme on procéde
+        au placement de chacun des $k$ robots les uns après les autres jusqu'à
+        obtenir une $Z$-configuration. La figure \ref{fig:principe} donne un
+        exemple de déroulement de cet algorithme. Ce dernier peut-être
+        brièvement résumé par ce qui suit :
+
+        \begin{enumerate}
+          \item Placer le $1^{er}$ robot sur l'anneau central
+          \item Placer le $2^{nd}$ robot sur l'anneau central dans le voisinage
+            du $1^{er}$
+          \item Placer le $3^{eme}$ robot dans le voisinage du $1^{er}$ à
+            distance $1$ de l'anneau central
+          \item Placer le $4^{eme}$ robot dans le voisinage du $2^{nd}$ à
+            distance $1$ de l'anneau central, du côté opposé au $3^{eme}$ robot
+            par rapport à l'anneau central
+        \end{enumerate}
+
+        \begin{figure}[h]
+          \centering
+          \tikzstyle{fleche} = [->,>=stealth',shorten >=5pt,thick]
+          \begin{tikzpicture}
+            \draw[ultra thick] (0,4) -- (8,4);
+            \foreach \i in {1,...,7} {
+              \draw[dashed]           (\i,1) -- (\i,7);
+              \draw[dashed]           (0,\i) -- (8,\i);
+              \draw[thick,fill=white] (8,\i) circle (1mm) {};
+              \draw[thick,fill=black] (0,\i) circle (1mm) {};
+            }
+            
+            \draw[fleche] (7,5) to (7,4); \node at (7,4.5) [left] {\bf 1};
+            \node at (7,5) [circle,draw,ultra thick,fill=white] {};
+            \node at (7,4) [circle,draw,ultra thick,fill=black] {};
+
+            \draw[thick]  (2,6) to (2,4); \node at (2,5.5) [left] {\bf 2};
+            \draw[fleche] (2,4) to (6,4);
+            \node at (2,6) [circle,draw,ultra thick,fill=white] {};
+            \node at (6,4) [circle,draw,ultra thick,fill=black] {};
+
+            \draw[thick]  (5,2) to (7,2); \node at (5.5,2) [above] {\bf 3};
+            \draw[fleche] (7,2) to (7,3);
+            \node at (5,2) [circle,draw,ultra thick,fill=white] {};
+            \node at (7,3) [circle,draw,ultra thick,fill=black] {};
+
+            \draw[thick]  (4,1) to (4,5); \node at (4,1.5) [left] {\bf 4};
+            \draw[fleche] (4,5) to (6,5);
+            \node at (4,1) [circle,draw,ultra thick,fill=white] {};
+            \node at (6,5) [circle,draw,ultra thick,fill=black] {};
+          \end{tikzpicture}
+          \caption{Un exemple de déroulement de l'algorithme de la phase Set-Up.}
+          \label{fig:principe}
+        \end{figure}
+
+    \subsection{Borne inférieure}
+
+      Nous rappelons que l'ordonnanceur est dirigé par un {\it adversaire}.
+
+      \begin{figure}[h]
+        \centering
+        \begin{tikzpicture}
+          \draw[ultra thick] (0,4) -- (8,4);
+          \foreach \i in {1,...,7} {
+            \draw[dashed]           (\i,1) -- (\i,7);
+            \draw[dashed]           (0,\i) -- (8,\i);
+            \draw[thick,fill=white] (8,\i) circle (1mm) {};
+            \draw[thick,fill=black] (0,\i) circle (1mm) {};
+          }
+
+          \node at (3,2) [circle,draw,ultra thick,fill=white] {};
+          \node at (6,2) [circle,draw,ultra thick,fill=white] {};
+          \node at (3,6) [circle,draw,ultra thick,fill=white] {};
+          \node at (6,6) [circle,draw,ultra thick,fill=white] {};
+        \end{tikzpicture}
+        \caption{Une configuration de départ symétrique avec 4 robots et $S = 7$.}
+        \label{fig:k4sym}
+      \end{figure}
+
+      \begin{lemme}
+        Soit $\gamma$ une configuration de départ symétrique. Si $\gamma$ est la
+        configuration à l'instant $t$ alors la configuration à l'instant $t + 1$
+        est une configuration symétrique.
+      \end{lemme}
+      
+      \paragraph{Preuve.} Soient $R_i$ les $k$ robots dans $\gamma$. Dans
+        $\gamma$ tous les robots peuvent bouger. $\gamma$ étant symétrique les
+        robots réalisent tous le même déplacement respectivement à leur place
+        d'origine. On obtient alors une configuration symétrique et le lemme
+        tient. \qed \medskip
+
+      Il est possible de trouver des configurations de départ symétrique pours
+      $k = 4$ robots (cf. figure \ref{fig:k4sym}) et $k = 5$ (cf. figure
+      \ref{fig:k5sym}). Il n'existe donc pas d'algorithme déterministe
+      permettant de réaliser l'exploration d'un cylindre carré avec $k = 4$ ou
+      $k = 5$ robots.
+
+      \begin{figure}[h]
+        \centering
+        \begin{tikzpicture}[scale=0.7, transform shape]
+          \draw[ultra thick] (0,2) -- (16,2);
+          \foreach \i in {1,...,3} {
+            \draw[dashed]           ( 0,\i) -- (16,\i);
+            \draw[thick,fill=white] (16,\i) circle (1mm) {};
+            \draw[thick,fill=black] ( 0,\i) circle (1mm) {};
+          }
+          \foreach \i in {1,...,15} {
+            \draw[dashed] (\i,0) -- (\i,4);
+          }
+
+          \node at ( 1,2) [circle,draw,ultra thick,fill=white] {};
+          \node at ( 4,2) [circle,draw,ultra thick,fill=white] {};
+          \node at ( 7,2) [circle,draw,ultra thick,fill=white] {};
+          \node at (10,2) [circle,draw,ultra thick,fill=white] {};
+          \node at (13,2) [circle,draw,ultra thick,fill=white] {};
+        \end{tikzpicture}
+        \caption{Une configuration de départ symétrique avec 5 robots et $S = 15$.}
+        \label{fig:k5sym}
+      \end{figure}
+
+    \medskip
+    Nous avons pu déterminer dans ce document que la construction d'une
+    orientation non-ambigüe nécessite exactement 3 robots
+    (cf. section \ref{sec:orientation}). Il n'est donc pas possible de réaliser une
+    exploration d'un cylindre carré que ce soit de manière déterministe ou
+    probabiliste avec $k = 3$ robots.
+
+\end{document}

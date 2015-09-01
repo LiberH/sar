@@ -1,0 +1,64 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage[francais]{babel}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage[left=4cm, right=4cm]{geometry}
+
+\title{\textbf{Répartiteur de charge}}
+\author{%
+  Clément \textsc{Delpech} \\
+  Armel   \textsc{Mangean} \\
+  Idrissa \textsc{Sokhona}
+}%
+\date{\today}
+
+\begin{document}
+
+  \maketitle
+  \thispagestyle{empty}
+  \newpage
+
+  \tableofcontents
+  \thispagestyle{empty}
+  \newpage
+ 
+  \setcounter{page}{1}
+
+  \input{src/Part1}
+  \input{src/Part2}
+  \input{src/Part3}
+
+\end{document}
+
+%% Exigences du rapport 
+ %% Le Rapport de conception doit contenir :
+  % - Définition du sujet
+  % - Compréhension des problèmes
+  % - Présentation des choix effectués
+  % - Interface utilisateur
+  % - Découpage en module
+  % - Architecture globale du système (spécification des interfaces
+  %   entre modules, spécification des différents messages échangés
+  %   entre les processus répartis).
+  % La solution doit être modulaire (i.e. composée de modules regroupant
+  % des entités de même nature) et extensible (i.e. devant permettre
+  % l'intégration de fonctionnalités supplémentaires.
+  %
+ %% Le rapport final reprendra le rapport de conception (corrigé)
+  % + mise en œuvre (réalisations) + manuels instal/utilisateur
+  % + jeu de tests
+  % + pblms rencontrés, etc.)
+
+%% Nota Bene :
+ %  - Bien distinguer la partie qui developpe sur les politiques À
+ %    DERTERMINER et celle qui parle des modules définissant des
+ %    méthodes concrètes de réalisation.
+ %  - Pas de politique de seléction pour le placement réparti
+ %    dynamique dans la thèse de B. Folliot.
+ %  - Le calcul de la charge ne se fait pas en fonction de
+ %    l'utilisation CPU parce que le multitasking ça existe !

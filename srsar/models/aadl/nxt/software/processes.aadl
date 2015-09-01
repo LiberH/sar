@@ -1,0 +1,58 @@
+package NXT::Processes
+public
+	with NXT::Threads;
+	
+	process NXT_Drivers
+	features
+		I2C_Message       : in event data port;
+		I2C_Data          : out data port;
+		Bluetooth_Message : in event data port;
+		Bluetooth_Data    : out data port;
+	end NXT_Drivers;
+
+	process implementation NXT_Drivers.Impl
+	subcomponents
+		I2C_ISR       : thread NXT::Threads::I2C_ISR.impl;
+		Bluetooth_ISR : thread NXT::Threads::Bluetooth_ISR.impl;
+	
+	connections
+		Port1 : port I2C_Message                  -> I2C_ISR.I2C_Message;
+		Port2 : port I2C_ISR.I2C_Data             -> I2C_Data;
+		Port3 : port Bluetooth_Message            -> Bluetooth_ISR.Bluetooth_Message;
+		Port4 : port Bluetooth_ISR.Bluetooth_Data -> Bluetooth_Data;
+	end NXT_Drivers.Impl;
+	
+	--
+	
+	process NXT_Application
+	features
+		I2C_Data       : in data port;
+		Bluetooth_Data : in data port;
+		Wheel_Speed    : out data port;
+
+		Racket_Button1 : in event port;
+		Racket_Button2 : in event port;
+		Racket_Speed   : out data port;
+	end NXT_Application;
+	
+	process implementation NXT_Application.Impl
+	subcomponents
+		Acquire_Distance : thread NXT::Threads::Acquire_Distance_Task.Impl;
+		Acquire_Setpoint : thread NXT::Threads::Acquire_Setpoint_Task.Impl;
+		Control_Wheel    : thread NXT::Threads::Control_Wheel_Task.Impl;
+		Control_Racket   : thread NXT::Threads::Control_Racket_Task.Impl;
+		Display_Task     : thread NXT::Threads::Display_Task.Impl;
+		
+	connections
+		Port1 : port I2C_Data                        -> Acquire_Distance.I2C_Data;
+		Port2 : port Acquire_Distance.Distance_Value -> Control_Wheel.Distance_Value;
+		Port3 : port Bluetooth_Data                  -> Acquire_Setpoint.Bluetooth_Data;
+		Port4 : port Acquire_Setpoint.Setpoint_Value -> Control_Wheel.Setpoint_Value;
+		Port5 : port Control_Wheel.Speed_Value       -> Wheel_Speed;
+		
+		Port6 : port Racket_Button1                  -> Control_Racket.Button1_Value;
+		Port7 : port Racket_Button2                  -> Control_Racket.Button2_Value;
+		Port8 : port Control_Racket.Speed_Value      -> Racket_Speed;
+	end NXT_Application.Impl;
+
+end NXT::Processes;

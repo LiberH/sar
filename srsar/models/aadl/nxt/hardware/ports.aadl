@@ -1,0 +1,25 @@
+package NXT::Ports
+public
+	with Common::Buses;
+
+	feature group Input_Socket
+	features
+		Analog_IO   : in event data port;
+		I2C_Message : in out event data port;
+	end Input_Socket;
+
+	feature group Input_Plug inverse of Input_Socket
+	end Input_Plug;
+
+	--
+
+	feature group Output_Socket
+	features
+		Digital_IO : out data port;
+		PWM_IO     : in data port;		
+	end Output_Socket;
+
+	feature group Output_Plug inverse of Output_Socket
+	end Output_Plug;
+
+end NXT::Ports;

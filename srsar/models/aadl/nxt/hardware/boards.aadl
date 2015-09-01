@@ -1,0 +1,70 @@
+package NXT::Boards
+public
+	with NXT::Processors;
+	with Common::Buses;
+	with NXT::Ports;
+	with NXT::Devices;
+	
+	system NXT_Brick
+	-- See http://www.lego.com/fr-fr/mindstorms/downloads/nxt/nxt-hdk/
+	features
+		-- Input ports
+		Port1     : feature group NXT::Ports::Input_Socket;
+		Port2     : feature group NXT::Ports::Input_Socket;
+		Port3     : feature group NXT::Ports::Input_Socket;
+		Port4     : feature group NXT::Ports::Input_Socket;
+		
+		Port1_I2C : provides bus access Common::Buses::I2C_Bus;
+		Port2_I2C : provides bus access Common::Buses::I2C_Bus;
+		Port3_I2C : provides bus access Common::Buses::I2C_Bus;
+		Port4_I2C : provides bus access Common::Buses::I2C_Bus;
+		
+		-- Output ports
+		PortA : feature group NXT::Ports::Output_Plug;
+		PortB : feature group NXT::Ports::Output_Plug;
+		PortC : feature group NXT::Ports::Output_Plug;		
+		
+		Button_Start : in event port;
+		Button_Stop  : in event port;
+		Button_Right : in event port;
+		Button_Left  : in event port;
+	end NXT_Brick;
+	
+	system implementation NXT_Brick.Impl
+	subcomponents
+		I2C_Bus   : bus Common::Buses::I2C_Bus.Impl;
+		I2C_Bus1  : bus Common::Buses::I2C_Bus.Impl;
+		I2C_Bus2  : bus Common::Buses::I2C_Bus.Impl;
+		I2C_Bus3  : bus Common::Buses::I2C_Bus.Impl;
+		I2C_Bus4  : bus Common::Buses::I2C_Bus.Impl;
+		UART_Bus  : bus Common::Buses::UART_Bus.Impl;
+		SPI_Bus   : bus Common::Buses::SPI_Bus.Impl;
+	
+		ARM       : processor NXT::Processors::AT91SAM7S256.Impl;
+		AVR       : processor NXT::Processors::ATMEGA48.Impl;
+		
+		Battery   : device NXT::Devices::NXT_Battery.Impl;
+		Bluetooth : device NXT::Devices::BlueCore4.Impl;
+		Display   : device NXT::Devices::UC1601.Impl;
+		
+	connections
+		I2C_AVR        : bus access I2C_Bus  -> AVR.I2C_Req;
+		I2C_ARM        : bus access I2C_Bus  -> ARM.I2C_Req;
+		I2C_ARM1       : bus access I2C_Bus1 -> ARM.I2C_Req1;
+		I2C_ARM2       : bus access I2C_Bus2 -> ARM.I2C_Req2;
+		I2C_ARM3       : bus access I2C_Bus3 -> ARM.I2C_Req3;
+		I2C_ARM4       : bus access I2C_Bus4 -> ARM.I2C_Req4;
+		I2C_Port1      : bus access I2C_Bus1 -> Port1_I2C;
+		I2C_Port2      : bus access I2C_Bus2 -> Port2_I2C;
+		I2C_Port3      : bus access I2C_Bus3 -> Port3_I2C;
+		I2C_Port4      : bus access I2C_Bus4 -> Port4_I2C;
+		
+		UART_ARM       : bus access UART_Bus -> ARM.UART_Req;
+		UART_Bluetooth : bus access UART_Bus -> Bluetooth.UART_Req;
+		
+		SPI_ARM        : bus access SPI_Bus  -> ARM.SPI_Req;
+		SPI_Display    : bus access SPI_Bus  -> Display.SPI_Req;
+		SPI_Bluetooth  : bus access SPI_Bus  -> Bluetooth.SPI_Req;
+	end NXT_Brick.Impl;
+
+end NXT::Boards;

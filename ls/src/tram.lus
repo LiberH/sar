@@ -1,0 +1,68 @@
+
+node RISING_EDGE (B: bool)
+returns (C: bool);
+let
+  C = false -> not (pre (B)) and B;
+tel
+
+node FALLING_EDGE (B: bool)
+returns (C: bool);
+let
+  C = RISING_EDGE (not (B));
+tel
+
+--node ONCE_FROM_TO (A, B, X: bool) returns (OK: bool);
+--var SeenA, SeenX: bool;
+--let
+--  SeenA = A -> if A then true else
+--               if pre SeenX and B then false else
+--               pre SeenA;
+--
+--  SeenX = false -> if pre SeenA and X then true else
+--                   if pre SeenX and (A or B) then false else
+--                   pre SeenX;
+--
+--  OK = true -> if pre SeenA and not pre SeenX and B then false else
+--               pre OK;
+--tel
+
+node TRAM (en_station, attention_depart, demande_porte, porte_ouverte: bool)
+returns (depart, depart_imminent, accepter_demande, porte_demandee, ouvrir_porte, fermer_porte, porte_ok: bool);
+let
+
+  assert (not (porte_ouverte) -> true);
+  assert (RISING_EDGE  (porte_ouverte) => pre ouvrir_porte);
+  assert (FALLING_EDGE (porte_ouverte) => pre fermer_porte);
+  --
+  -- assert (not porte_ouverte -> (RISING_EDGE (porte_ouverte) => pre ouvrir_porte)
+  --                           or (FALLING_EDGE (porte_ouverte) => pre fermer_porte));
+
+  assert (not (en_station) -> true);
+  -- assert (ONCE_FROM_TO (RISING_EDGE (en_station), FALLING_EDGE (en_station), attention_depart));
+  -- assert (ONCE_FROM_TO (attention_depart, FALLING_EDGE (en_station), porte_ok));
+  --
+  -- assert (not en_station -> (ONCE_FROM_TO (RISING_EDGE (en_station), FALLING_EDGE (en_station), attention_depart))
+  --                       and (ONCE_FROM_TO (attention_depart, FALLING_EDGE (en_station), porte_ok)));
+
+  -- Hypothesis on the tramway:
+  --  Leaving a station implies door is OK
+  assert (FALLING_EDGE (en_station) => pre (porte_ok));
+
+  --  Emitting departure signal implies being in station and not opening the door
+  assert (attention_depart => en_station and not (pre (ouvrir_porte)));
+
+  -- Hypothesis on the door:
+  --  The door becoming open implies it was previously opening
+  --  The door becoming closed implies it was previously closing 
+
+  depart           = FALLING_EDGE (en_station);
+
+  depart_imminent  = false -> (attention_depart or pre (depart_imminent)) and not (depart);
+  accepter_demande = true -> (depart or pre (accepter_demande)) and not (RISING_EDGE (depart_imminent));
+  porte_demandee   = demande_porte -> (demande_porte or pre (porte_demandee)) and accepter_demande;
+
+  ouvrir_porte     = en_station and not (depart_imminent) and porte_demandee and not (porte_ouverte);
+  fermer_porte     = en_station and depart_imminent and porte_ouverte;
+  porte_ok         = en_station and depart_imminent and not (porte_ouverte);
+
+tel

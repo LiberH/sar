@@ -1,0 +1,54 @@
+node FEUX (TD, TI, CP, AB, LP: bool)
+returns (Veilleuses, Codes, Phares, AntiBrouillard, LonguePortee: bool);
+var Eteint: bool;
+let
+  
+  -- Preconditon: Only one input in {TD, TI, CP} is true simultaneously. 
+  assert not (TD and TI);
+  assert not (TI and CP);
+  assert not (CP and TD);
+
+  -- Preconditon: Only one input in {AB, LP} is true simultaneously. 
+  assert not (AB and LP);
+
+  Eteint = not TD -> if TI and pre Veilleuses then true else
+                     if TD and pre Eteint then false else
+                     pre Eteint;
+
+  Veilleuses = TD -> if TD and pre Eteint then true else
+                     if TI and (pre Codes or pre Phares) then true else
+                     if TD and pre Veilleuses then false else
+                     if TI and pre Veilleuses then false else
+                     pre Veilleuses;
+
+  Codes = false -> if TD and pre Veilleuses then true else
+                   if CP and pre Phares then true else
+                   if TI and pre Codes then false else
+                   if CP and pre Codes then false else
+                   pre Codes;
+
+  Phares = false -> if CP and pre Codes then true else
+                    if TI and pre Phares then false else
+                    if CP and pre Phares then false else
+                    pre Phares;
+ 
+  AntiBrouillard = false -> Codes and (if AB and not pre AntiBrouillard then true else
+                                       if AB and pre AntiBrouillard then false else
+                                       pre AntiBrouillard);
+
+  LonguePortee = false -> Phares and (if LP and not pre LonguePortee then true else
+                                      if LP and pre LonguePortee then false else
+                                      pre LonguePortee);
+
+  -- Postcondition: Only one output in {Veilleuses, Codes, Phares} is
+  --   true simultaneously.
+  -- Veilleuses => not (Codes      or Phares)
+  -- Codes      => not (Phares     or Veilleuses)
+  -- Phares     => not (Veilleuses or Codes)
+
+  -- Postcondition: AntiBrouillard implies Codes and LonguePortee
+  --   implies Phares.
+  -- AntiBrouillard => Codes
+  -- LonguePortee   => Phares
+
+tel

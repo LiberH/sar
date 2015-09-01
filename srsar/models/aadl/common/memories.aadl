@@ -1,0 +1,21 @@
+-- TODO
+-- > Add properties
+
+package Common::Memories
+public
+
+	memory Flash_Memory
+	end Flash_Memory;
+  
+	memory implementation Flash_Memory.Impl
+	end Flash_Memory.Impl;
+
+	--
+
+	memory RAM
+	end RAM;
+  
+	memory implementation RAM.Impl
+	end RAM.Impl;
+	
+end Common::Memories;

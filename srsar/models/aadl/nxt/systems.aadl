@@ -1,0 +1,33 @@
+package NXT::Systems
+public
+	with NXT::Processes;
+	with NXT::Boards;
+	NXT_System renames system NXT::Boards::NXT_Brick;
+	
+	system implementation NXT_System.Impl extends NXT::Boards::NXT_Brick.Impl
+	subcomponents
+		Drivers     : process NXT::Processes::NXT_Drivers.Impl;
+		Application : process NXT::Processes::NXT_Application.Impl;
+		
+	connections
+		-- Driver
+		P1 : port Port1.Analog_IO              -> Application.Racket_Button1;
+		P2 : port Port2.I2C_Message           <-> Drivers.I2C_Message; -- Distance sensor
+		P3 : port Port3.I2C_Message           <-> Drivers.I2C_Message; -- Arduino
+		BT : port Bluetooth.Bluetooth_Message <-> Drivers.Bluetooth_Message;
+		
+		-- Application
+		P4 : port Drivers.I2C_Data         -> Application.I2C_Data;
+		P5 : port Drivers.Bluetooth_Data   -> Application.Bluetooth_Data;
+		P6 : port Application.Wheel_Speed  -> PortA.PWM_IO;
+		P7 : port Application.Racket_Speed -> PortB.PWM_IO;
+		
+	properties
+		Actual_Processor_Binding  => (reference (ARM))      applies to Drivers;
+	    Actual_Processor_Binding  => (reference (ARM))      applies to Application;
+	    Actual_Connection_Binding => (reference (I2C_Bus1)) applies to P2;
+	    Actual_Connection_Binding => (reference (I2C_Bus2)) applies to P3;
+	    Actual_Connection_Binding => (reference (I2C_Bus))  applies to P4;
+	end NXT_System.Impl;
+
+end NXT::Systems;

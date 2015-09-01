@@ -1,0 +1,29 @@
+-- TODO
+-- > Add properties, especially execution time
+
+package Arduino::Devices
+public
+	with Common::Buses;
+	with Arduino::Feature_Groups;
+	with Base_Types;
+
+	device CMUcam
+	features
+		UART_Req            : requires bus access Common::Buses::UART_Bus.Impl;
+		Arduino_Shield_Plug : feature group Arduino::Feature_Groups::Shield_Plug;
+	end CMUcam;
+	
+	device implementation CMUcam.v4
+	end CMUcam.v4;
+	
+	--
+	
+	device Pololu_1134
+	features
+		Presence : out data port Base_Types::Boolean;
+	end Pololu_1134;
+	
+	device implementation Pololu_1134.with_GP2Y0D810
+	end Pololu_1134.with_GP2Y0D810;
+
+end Arduino::Devices;

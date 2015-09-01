@@ -1,0 +1,22 @@
+-- TODO
+-- > Add properties
+
+package Arduino::Processors
+public
+	with Common::Memories;
+	with Common::Buses;
+	
+	processor ATMEGA328
+	-- AVR
+	features
+		I2C_Req  : requires bus access Common::Buses::I2C_Bus;
+		UART_Req : requires bus access Common::Buses::UART_Bus;
+	end ATMEGA328;
+	
+	processor implementation ATMEGA328.impl
+	subcomponents
+		Flash_Memory : memory Common::Memories::Flash_Memory.Impl;
+		RAM          : memory Common::Memories::RAM.Impl;
+	end ATMEGA328.impl;
+
+end Arduino::Processors;

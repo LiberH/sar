@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>// Place global declarations here.
+
+chan
+CMUcam_begin,
+CMUcam_trackColor,
+CMUcam_putTypeTDataPacket,
+CMUcam_getTypeTDataPacket;
+
+chan
+Driver_Busy,
+Driver_Waitting,
+Wire_onRequest,
+Wire_write;
+
+broadcast chan
+OSEK_StartOS,
+OSEK_SendMessage,
+OSEK_ReceiveMessage;
+
+chan
+Racket_shoot,
+Racket_rearmed;
+
+</declaration><template><name x="5" y="5">DEV_Camera</name><declaration>// Place local declarations here.
+
+clock init_clock;
+clock processing_clock;
+clock buffer_clock;
+
+const int init_latency       = 40; // in [0;40] ms
+const int processing_latency = 60; // in [30;60] ms
+const int buffer_period      = 34; // for 30 fps
+
+</declaration><location id="id0" x="0" y="-320"><name x="16" y="-352">Initialized</name><urgent/></location><location id="id1" x="0" y="-64"><name x="16" y="-112">ProcessingFirstPicture</name><label kind="invariant" x="16" y="-96">processing_clock &lt;= processing_latency</label></location><location id="id2" x="0" y="-192"><name x="16" y="-240">AcquiringFirstPicture</name><label kind="invariant" x="16" y="-224">init_clock &lt;= init_latency</label></location><location id="id3" x="0" y="192"><name x="16" y="208">EmptyBuffer</name><label kind="invariant" x="16" y="224">buffer_clock &lt;= buffer_period</label></location><location id="id4" x="0" y="64"><name x="16" y="16">PictureInBuffer</name><label kind="invariant" x="16" y="32">buffer_clock &lt;= buffer_period</label></location><location id="id5" x="0" y="-448"><name x="16" y="-480">Uninitialized</name><urgent/></location><init ref="id5"/><transition><source ref="id3"/><target ref="id3"/><label kind="synchronisation" x="16" y="256">CMUcam_getTypeTDataPacket?</label><nail x="-16" y="240"/><nail x="-16" y="320"/><nail x="0" y="288"/></transition><transition><source ref="id1"/><target ref="id4"/><label kind="synchronisation" x="-224" y="-16">CMUcam_putTypeTDataPacket!</label><label kind="assignment" x="-224" y="0">buffer_clock = 0</label></transition><transition><source ref="id2"/><target ref="id1"/><label kind="assignment" x="-160" y="-144">processing_clock = 0</label></transition><transition><source ref="id0"/><target ref="id2"/><label kind="synchronisation" x="-160" y="-272">CMUcam_trackColor?</label><label kind="assignment" x="-160" y="-256">init_clock = 0</label></transition><transition><source ref="id5"/><target ref="id0"/><label kind="synchronisation" x="-128" y="-400">CMUcam_begin?</label></transition><transition><source ref="id3"/><target ref="id4"/><label kind="guard" x="-288" y="112">buffer_clock == buffer_period</label><label kind="assignment" x="-288" y="128">buffer_clock = 0</label><nail x="-64" y="192"/><nail x="-64" y="64"/></transition><transition><source ref="id4"/><target ref="id3"/><label kind="synchronisation" x="80" y="112">CMUcam_getTypeTDataPacket?</label><nail x="64" y="64"/><nail x="64" y="192"/></transition></template><template><name>DEV_Racket</name><declaration>// Place local declarations here.
+
+clock racket_clock;
+
+const int firing_time   = 1; // ?
+const int rearming_time = 1; // ?
+
+</declaration><location id="id6" x="192" y="192"><name x="208" y="208">Rearming</name><label kind="invariant" x="208" y="224">racket_clock &lt;= rearming_time</label></location><location id="id7" x="192" y="0"><name x="208" y="-48">Firing</name><label kind="invariant" x="208" y="-32">racket_clock &lt;= firing_time</label></location><location id="id8" x="0" y="0"><name x="16" y="-32">Idling</name></location><init ref="id8"/><transition><source ref="id6"/><target ref="id8"/><label kind="guard" x="-240" y="80">racket_clock == rearming_time</label><label kind="synchronisation" x="-240" y="96">Racket_rearmed!</label><nail x="0" y="192"/></transition><transition><source ref="id7"/><target ref="id6"/><label kind="guard" x="208" y="80">racket_clock == firing_time</label><label kind="assignment" x="208" y="96">racket_clock = 0</label><label kind="comments">button pressed</label></transition><transition><source ref="id8"/><target ref="id7"/><label kind="synchronisation" x="32" y="16">Racket_shoot?</label><label kind="assignment" x="32" y="32">racket_clock = 0</label></transition></template><template><name>ARD_Loop</name><declaration>// Place local declarations here.
+
+clock looping_clock;
+const int looping_time = 34; // = Camera_Task.buffer_time
+
+</declaration><location id="id9" x="0" y="256"><name x="16" y="208">Looping</name><label kind="invariant" x="16" y="224">looping_clock &lt; looping_time</label></location><location id="id10" x="0" y="128"><name x="16" y="96">Untracking</name></location><location id="id11" x="0" y="0"><name x="16" y="-32">Uninitialized</name></location><init ref="id11"/><transition><source ref="id9"/><target ref="id9"/><label kind="synchronisation" x="16" y="304">CMUcam_getTypeTDataPacket!</label><label kind="assignment" x="16" y="320">looping_clock = 0</label><nail x="0" y="352"/><nail x="-16" y="384"/><nail x="-16" y="304"/></transition><transition><source ref="id10"/><target ref="id9"/><label kind="synchronisation" x="-160" y="176">CMUcam_trackColor!</label><label kind="assignment" x="-160" y="192">looping_clock = 0</label></transition><transition><source ref="id11"/><target ref="id10"/><label kind="synchronisation" x="-128" y="48">CMUcam_begin!</label></transition></template><template><name>ARD_Handler</name><declaration>// Place local declarations here.
+
+clock polling_clock;
+const int polling_time = 0; // approx. 0,1 ms, neglectable.
+
+</declaration><location id="id12" x="-256" y="0"><name x="-240" y="-32">WaitingRequest</name></location><location id="id13" x="-256" y="192"><name x="-240" y="208">TransmitingResponse</name></location><location id="id14" x="64" y="192"><name x="80" y="208">PollingSensors</name><label kind="invariant" x="80" y="224">polling_clock &lt;= polling_time</label></location><location id="id15" x="64" y="0"><name x="80" y="-32">ReceivingRequest</name></location><init ref="id12"/><transition><source ref="id13"/><target ref="id12"/><label kind="synchronisation" x="-416" y="80">Driver_Waitting?</label></transition><transition><source ref="id12"/><target ref="id15"/><label kind="synchronisation" x="-192" y="16">Driver_Busy?</label></transition><transition><source ref="id14"/><target ref="id13"/><label kind="guard" x="-192" y="160">polling_clock == polling_time</label><label kind="synchronisation" x="-192" y="144">Wire_write!</label></transition><transition><source ref="id15"/><target ref="id14"/><label kind="synchronisation" x="80" y="80">Wire_onRequest?</label><label kind="assignment" x="80" y="96">polling_clock = 0</label></transition></template><template><name>NXT_Boot</name><declaration>// Place local declarations here.
+
+</declaration><location id="id16" x="0" y="-128"><name x="16" y="-160">UnbootedCamera</name></location><location id="id17" x="0" y="128"><name x="16" y="96">Booted</name></location><location id="id18" x="0" y="0"><name x="16" y="-32">UnstartedOS</name></location><init ref="id16"/><transition><source ref="id16"/><target ref="id18"/><label kind="synchronisation" x="-224" y="-80">CMUcam_putTypeTDataPacket?</label></transition><transition><source ref="id18"/><target ref="id17"/><label kind="synchronisation" x="-112" y="48">OSEK_StartOS!</label></transition></template><template><name>NXT_Driver</name><parameter>const int driver_period </parameter><declaration>// Place local declarations here.
+
+clock driver_clock;
+clock transmitting_clock;
+clock receiving_clock;
+
+const int transmitting_time = 2; // for 20 bits
+const int receiving_time    = 4; // for 38 bits
+
+</declaration><location id="id19" x="320" y="-256"><name x="336" y="-288">Unstarted</name></location><location id="id20" x="320" y="-128"><name x="336" y="-160">FirstActivation</name><urgent/></location><location id="id21" x="0" y="192"><name x="16" y="208">ReceivingResponse</name><label kind="invariant" x="16" y="224">driver_clock &lt;= driver_period &amp;&amp;
+receiving_clock &lt;= receiving_time</label></location><location id="id22" x="320" y="192"><name x="336" y="208">WaittingResponse</name><label kind="invariant" x="336" y="224">driver_clock &lt;= driver_period</label></location><location id="id23" x="320" y="0"><name x="336" y="-64">TransmitingRequest</name><label kind="invariant" x="336" y="-48">driver_clock &lt;= driver_period &amp;&amp;
+transmitting_clock &lt;= transmitting_time</label></location><location id="id24" x="0" y="0"><name x="16" y="-48">WaitingActivation</name><label kind="invariant" x="16" y="-32">driver_clock &lt;= driver_period</label></location><init ref="id19"/><transition><source ref="id21"/><target ref="id24"/><label kind="guard" x="-240" y="80">receiving_clock == receiving_time</label><label kind="synchronisation" x="-240" y="96">Driver_Waitting!</label></transition><transition><source ref="id20"/><target ref="id23"/><label kind="synchronisation" x="336" y="-112">Driver_Busy!</label></transition><transition><source ref="id19"/><target ref="id20"/><label kind="synchronisation" x="336" y="-224">OSEK_StartOS?</label><label kind="assignment" x="336" y="-208">driver_clock = 0,
+transmitting_clock = 0</label></transition><transition><source ref="id22"/><target ref="id21"/><label kind="synchronisation" x="64" y="144">Wire_write?</label><label kind="assignment" x="64" y="160">receiving_clock = 0</label></transition><transition><source ref="id23"/><target ref="id22"/><label kind="guard" x="336" y="96">transmitting_clock == transmitting_time</label><label kind="synchronisation" x="336" y="80">Wire_onRequest!</label></transition><transition><source ref="id24"/><target ref="id23"/><label kind="guard" x="64" y="16">driver_clock == driver_period</label><label kind="synchronisation" x="64" y="32">Driver_Busy!</label><label kind="assignment" x="64" y="48">driver_clock = 0,
+transmitting_clock = 0</label></transition></template><template><name>NXT_Task</name><parameter>const int alarm_period</parameter><declaration>// Place local declarations here.
+
+clock alarm_clock;
+clock processing_clock;
+
+const int processing_time = 0; // undefined.
+
+</declaration><location id="id25" x="0" y="256"></location><location id="id26" x="0" y="0"><name x="16" y="-32">Unstarted</name></location><location id="id27" x="0" y="128"><name x="16" y="64">Processing</name><label kind="invariant" x="16" y="80">alarm_clock &lt;= alarm_period &amp;&amp;
+processing_clock &lt;= processing_time</label></location><location id="id28" x="0" y="384"><name x="16" y="400">WaitingPeriod</name><label kind="invariant" x="16" y="416">alarm_clock &lt;= alarm_period</label></location><init ref="id26"/><transition><source ref="id26"/><target ref="id27"/><label kind="synchronisation" x="-160" y="48">OSEK_StartOS?</label><label kind="assignment" x="-160" y="64">alarm_clock = 0,
+processing_clock = 0</label></transition><transition><source ref="id25"/><target ref="id28"/><label kind="synchronisation" x="16" y="304">Racket_rearmed?</label></transition><transition><source ref="id27"/><target ref="id28"/><label kind="guard" x="208" y="240">processing_clock == processing_time</label><nail x="192" y="128"/><nail x="192" y="384"/></transition><transition><source ref="id27"/><target ref="id25"/><label kind="synchronisation" x="16" y="176">Racket_shoot!</label></transition><transition><source ref="id28"/><target ref="id27"/><label kind="guard" x="-288" y="240">alarm_clock == alarm_period</label><label kind="assignment" x="-288" y="256">alarm_clock = 0,
+processing_clock = 0</label><nail x="-64" y="384"/><nail x="-64" y="128"/></transition></template><system>// Place template instantiations here.
+
+const int driver_period =  50;
+const int task_period   = 100;
+
+camera  := DEV_Camera();
+racket  := DEV_Racket();
+loop    := ARD_Loop();
+handler := ARD_Handler();
+boot    := NXT_Boot();
+driver  := NXT_Driver(driver_period);
+task    := NXT_Task(task_period);
+
+system
+camera, racket,
+loop, handler,
+boot, driver, task;
+
+</system></nta>

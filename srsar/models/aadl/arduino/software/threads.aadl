@@ -1,0 +1,50 @@
+package Arduino::Threads
+public
+	with Base_Types;
+	with Arduino::Subprograms;
+
+	thread I2C_ISR
+	features
+		I2C_Message    : in out event data port;
+		Vision_Data    : in data port;
+		Presence_Data : in data port Base_Types::Boolean;
+	end I2C_ISR;
+	
+	thread implementation I2C_ISR.Impl
+	calls
+   		Call : { Compute_I2C_Request : subprogram Arduino::Subprograms::Compute_I2C_Request; };
+   	
+   	connections
+    	Param1 : parameter I2C_Message                      -> Compute_I2C_Request.I2C_Request;
+   		Param2 : parameter Vision_Data                      -> Compute_I2C_Request.Vision_Data;
+   		Param3 : parameter Presence_Data                    -> Compute_I2C_Request.Presence_Data;
+    	Param7 : parameter Compute_I2C_Request.I2C_Response -> I2C_Message;
+    	
+	properties
+    	Dispatch_Protocol => Aperiodic;
+    	Priority          => 1; -- Arbitrary
+	end I2C_ISR.Impl;
+	
+	--
+
+	thread Main_Task
+	features
+		Vision_DataIn  : in data port;
+		Vision_DataOut : out data port;
+	end Main_Task;
+	
+	thread implementation Main_Task.Impl
+	calls
+   		Call1 : { Compute_Vision   : subprogram Arduino::Subprograms::Compute_Vision; };
+   			
+  	connections
+  		Param1 : parameter Vision_DataIn                 -> Compute_Vision.Vision_DataIn;
+    	Param2 : parameter Compute_Vision.Vision_DataOut -> Vision_DataOut;
+    	
+	properties
+    	Dispatch_Protocol => Periodic;
+    	Period            => 50 Ms; -- Arbitrary
+    	Priority          => 1;     -- Arbitrary
+	end Main_Task.Impl;
+	
+end Arduino::Threads;

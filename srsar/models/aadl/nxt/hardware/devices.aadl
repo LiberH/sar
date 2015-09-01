@@ -1,0 +1,70 @@
+-- TODO
+-- > Add properties, especially execution time
+
+package NXT::Devices
+public
+	with Common::Buses;
+	with NXT::Ports;
+
+	device DIST_Nx
+	features
+		I2C_Req  : requires bus access Common::Buses::I2C_Bus;
+		NXT_Plug : feature group NXT::Ports::Input_Plug;
+	end DIST_Nx;
+	
+	device implementation DIST_Nx.v3
+	end DIST_Nx.v3;
+	
+	--
+	
+  	device NXT_Battery
+	end NXT_Battery;
+	
+	device implementation NXT_Battery.Impl
+	end NXT_Battery.Impl;
+	
+	--
+	
+	device NXT_Motor
+	features
+		NXT_Socket : feature group NXT::Ports::Input_Socket;
+	end NXT_Motor;
+	
+	device implementation NXT_Motor.Impl
+	end NXT_Motor.Impl;
+	
+	--
+	
+	device NXT_Button
+	features
+		NXT_Plug : feature group NXT::Ports::Input_Plug;
+	end NXT_Button;
+	
+	device implementation NXT_Button.Impl
+	end NXT_Button.Impl;
+	
+	--
+	
+	device BlueCore4
+	-- See http://www.csr.com/products/29/bluecore4-ext
+	features
+		UART_Req          : requires bus access Common::Buses::UART_Bus;
+		SPI_Req           : requires bus access Common::Buses::SPI_Bus;
+		Bluetooth_Message : in out event data port;
+	end BlueCore4;
+	
+	device implementation BlueCore4.Impl
+	end BlueCore4.Impl;
+	
+	--
+	
+	device UC1601
+	-- See http://www.i-lcd.com/PDFs/uc1601-v1-0d.pdf
+	features
+		SPI_Req : requires bus access Common::Buses::SPI_Bus;
+	end UC1601;
+
+	device implementation UC1601.impl
+	end UC1601.impl;
+
+end NXT::Devices;

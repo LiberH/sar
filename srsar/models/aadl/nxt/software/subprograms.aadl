@@ -1,0 +1,57 @@
+package NXT::Subprograms
+public
+
+	subprogram Compute_I2C_Message
+	features
+		I2C_Message : in parameter;
+		I2C_Data    : out parameter;
+	end Compute_I2C_Message;
+	
+	--
+	
+	subprogram Compute_Bluetooth_Message
+	features
+		Bluetooth_Message : in parameter;
+		Bluetooth_Data    : out parameter;
+	end Compute_Bluetooth_Message;
+
+	--
+
+	subprogram Compute_Distance
+	features
+		I2C_Data       : in parameter;
+		Distance_Value : out parameter;
+	end Compute_Distance;
+	
+	--
+	
+	subprogram Compute_Setpoint
+	features
+		Bluetooth_Data : in parameter;
+		Setpoint_Value : out parameter;
+	end Compute_Setpoint;
+	
+	--
+	
+	subprogram Compute_Wheel_Speed
+	features
+		Distance_Value : in parameter;
+		Setpoint_Value : in parameter;
+		Speed_Value    : out parameter;
+	end Compute_Wheel_Speed;
+	
+	--
+	
+	subprogram Compute_Racket_Speed
+	features
+		Speed_Value : out parameter;
+	end Compute_Racket_Speed;
+
+	--
+
+	subprogram Compute_Bluetooth
+	features
+		Bluetooth_Status : in parameter;
+	end Compute_Bluetooth;
+	
+end NXT::Subprograms;

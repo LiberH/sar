@@ -1,0 +1,133 @@
+\documentclass{report}
+
+\usepackage{lmodern}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[francais]{babel}
+\usepackage[nottoc,numbib]{tocbibind}
+
+\usepackage[colorlinks,pagebackref]{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{stmaryrd}
+\usepackage{xcolor}
+\definecolor{lightgray}{rgb}{.9,.9,.9}
+\usepackage{graphicx}
+\usepackage[justification=centering]{caption}
+\usepackage{placeins}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{positioning,shapes,arrows,automata,petri}
+\usetikzlibrary{intersections}
+
+% TODO UPMC, Bérard, Roux, ...
+\title{Rapport de stage \\
+  {\bf Robustesse des modèles temporisés : \\
+    une étude de cas}}
+\author{Armel Mangean}
+\date{Septembre 2014}
+
+\begin{document}
+
+  \pagenumbering{alph}
+  \maketitle
+
+  \pagenumbering{arabic}
+  \chapter*{Remerciement}
+
+    Je tiens à remercier dans un premier temps toute l'équipe pédagogique de
+    l'Université Pierre et Marie Curie et tous les intervenants responsables de
+    la formation du Master Informatique fillière Système et Application
+    Réparties pour avoir assuré la qualité d'enseignement de celle-ci. Je
+    remercie plus particulièrement madame Béatrice Bérard pour avoir assuré le
+    rôle de maitre de stage.
+
+    ~
+
+    Je tiens à remercier et à témoigner ma reconnaissance aux personnes
+    suivantes pour l'experience enrichissante que j'ai pu vivre durant c'est 5
+    mois à l'IRCCyN et l'École Centrale Nantes. Messieurs Olivier H. Roux,
+    Jean-Luc Béchennec, Sébastien Faucou, Didier Lime et Richard Urunela pour
+    leur confiance, le temps qu'ils ont pu me consacrer tout au long de cette
+    période et pour avoir toujours répondu à mes interrogations.
+
+    ~
+
+    Je remercie également Benjamin Sientzoff avec qui j'ai colaboré ainsi que
+    nombreux doctorants et stagiaires de l'IRCCyN pour leur accueil sympathique
+    ainsi que pour leur aide. Enfin je remercie ma famille et mes amis qui m'ont
+    sontenu durant ce stage.
+
+  \tableofcontents
+
+  \chapter*{Introduction}
+  \addcontentsline{toc}{chapter}{Introduction}
+
+    C'est avec enthousiasme que j'effectue ma dernière année de Master
+    Informatique en Systèmes et Applications Réparties au sein de l'Université
+    Pierre et Marie Curie. Dans le cadre de ma cinquième année d'étude dans
+    l'enseignement supérieur, je réalise un stage de fin de Master au sein de
+    l'Institut de Recherche en Communication et Cybernétique de Nantes,
+    l'IRCCyN.
+
+    ~
+    
+    Ce stage me donne les moyens de mettre en pratique l'ensemble de mes
+    connaissances et compétences dans un cadre professionnel. La tâche qui m'est
+    confiée est la modélisation et la vérification d'un ensemble de propriétés
+    d'un robot devant servir à un démonstrateur dans le cadre de différents
+    projets de recherches.
+
+    ~
+
+    Le sujet initial de ce stage était la génération d'applicatifs temps réel à
+    partir de modèles formels. Cependant, certaines contraintes s'étant
+    présentées plus ou moins tôt dans la réalisation de ce stage et certains
+    choix réalisés en conséquent ont fait se réorienter mes axes de travail. Le
+    travail réalisé constitue finalement une étude de cas sur la robustesse des
+    modèles temporisés. Cette étude porte sur une sous-partie du démonstrateur.
+
+    ~
+
+    Pour rendre la lecture de ce document accessible au plus grand nombre je me
+    suis efforcé d'expliquer les concepts techniques de manière le plus simple
+    possible. Dans un premier temps, je developperai le contexte de
+    réalisation de ce stage. Dans un second temps, j'aborderai les missions qui
+    m'ont été confiées et le travail réalisé en conséquent. Enfin, je décrirai
+    les résultats obtenus et le bilan qui peut en être fait.
+    
+  \input{./src/context}
+  \input{./src/mission}
+  \input{./src/work}
+  
+  \chapter*{Conclusion}
+  \addcontentsline{toc}{chapter}{Conclusion}
+
+    À travers ce stage j'ai pu acquérir de nouvelles connaissances et
+    compétences dans le domaine des modèles temporisés. J'ai pu me confronter à
+    la modélisation architecturale avec AADL et comportementale avec UPPAAL et
+    Roméo d'une partie d'un système concret ainsi que réaliser des vérifications
+    en utilisant des résultats de travaux de recherches de l'état de l'art.
+
+    ~
+    
+    J'ai pu ainsi obtenir de solides bases théoriques dans ce domaine. J'ai
+    également eu la chance de pouvoir assister à l'école d'été
+    MOVEP\footnotemark qui se tenait à Nantes. Cette dernière a également
+    participé à consolider mes acquis autour des méthodes formelles de
+    modélisation et vérification des systèmes.
+    \footnotetext{\url{http://movep14.irccyn.ec-nantes.fr}}
+
+    ~
+ 
+    Je suis très heureux d'avoir réalisé ce stage pour, et au sein de, l'équipe
+    de recherche Systèmes Temps Réel de l'IRCCyN. Je suis également très
+    heureux de poursuivre mon parcours dans cette même équipe dans le cadre d'un
+    thèse.
+
+  \appendix
+  \input{./src/biblio}
+  \input{./src/resources}
+
+\end{document}

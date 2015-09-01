@@ -1,0 +1,12 @@
+package Arduino::Feature_Groups
+public
+
+	feature group Shield_Socket
+	features
+		UART_Message : in out event data port;
+	end Shield_Socket;
+
+	feature group Shield_Plug inverse of Shield_Socket
+	end Shield_Plug;
+	
+end Arduino::Feature_Groups;

@@ -1,0 +1,227 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[francais]{babel}
+%\usepackage{textcomp}
+
+%\usetheme{Rochester}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+\title{}
+\author{Armel}
+\institute{}
+\date{Mai 2014}
+
+\begin{document}
+
+  \begin{frame}
+    \frametitle{Modèle AADL}
+    \framesubtitle{Implémentation matérielle}
+
+    NXT
+    \begin{itemize}
+      \item Capteur de distance
+      \item Roue
+      \item Raquette
+    \end{itemize} \vspace{1em}
+
+    Arduino
+    \begin{itemize}
+      \item Caméra
+      \item Capteur de présence
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}
+    \frametitle{Modèle AADL}
+    \framesubtitle{Implémentation logicielle}
+
+    Système
+    \begin{itemize}
+      \item ISR1 I2C
+      \item ISR1 Bluetooth
+    \end{itemize} \vspace{1em}
+
+    Applicatif
+    \begin{itemize}
+      \item Acquisition distance
+      \item Acquisition consigne distance
+      \item Asservissement roue
+      \item Asservissement raquette
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}
+    \frametitle{Modèle AADL}
+    \framesubtitle{Non-implémenté}
+
+    Matériel
+    \begin{itemize}
+      \item Port USB
+      \item Écran LCD
+      \item Batterie
+      \item Haut-parleur
+    \end{itemize} \vspace{1em}
+
+    Logiciel
+    \begin{itemize}
+      \item Tâche d’affichage
+      \item Couche logicielle Arduino
+    \end{itemize} \vspace{1em}
+
+    Propriétés temporelles
+    \begin{itemize}
+      \item Traitements
+      \item Communications
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}
+    \frametitle{Modèle AADL}
+    \framesubtitle{Remarques et questions}
+
+    Remarques
+    \begin{itemize}
+      \item AVR en tant que {\it processor} (pas {\it device})
+      \item Choix de modélisation et description des propriétés
+      %\begin{itemize}
+      %  \item Pilotes en tant que {\it server subprograms}
+      %  \item {\it bus accesses} dans les {\it feature groups}
+      %  \item Arduino DIO en tant que {\it event data ports}
+      %  \item Exclusivité sur les E/S du NXT
+      %\end{itemize}
+      \item Datasheet NXT incomplet
+      \item Informations temporelles CMUcam
+    \end{itemize} \vspace{1em}
+
+    Questions
+    \begin{itemize}
+      \item Quel forme pour le démonstrateur ?
+      \item Utilisation du tachymètre ?
+      \item Quel niveau d’abstraction ?
+    \end{itemize}
+  \end{frame}
+
+  %%%
+
+  \begin{frame}
+    \frametitle{Implémentation matérielle}
+    \framesubtitle{Justification du format}
+
+    Expérimentation de prototypes
+    \begin{itemize}
+      \item Perte de temps
+    \end{itemize} \vspace{1em}
+
+    Réalisation d’une réplique
+  \end{frame}
+
+  \begin{frame}
+    \frametitle{Implémentation matérielle}
+    \framesubtitle{Composition}
+
+    Présent
+    \begin{itemize}
+      \item Roue
+      \item Raquette
+      \item Capteur de distance (ajout)
+    \end{itemize} \vspace{1em}
+
+    Absent
+    \begin{itemize}
+      \item Arduino
+      \item Caméra
+      \item Capteur de présence
+      \item Capteur de distance doublé
+      \item Capteurs de pression (retrait)
+    \end{itemize}
+  \end{frame}
+
+  %%%
+
+  \begin{frame}
+    \frametitle{Implémentation logicielle}
+    \framesubtitle{Réalisé}
+
+    Tâches
+    \begin{itemize}
+      \item Affichage
+      \item Initialisation
+      \begin{itemize}
+        \item Communication Bluetooth
+        \item Communication I2C
+        \item Tachymètre moteur
+      \end{itemize}
+      \item Acquisition distance
+      \item Acquisition de la consigne de distance
+      \item Asservissement de la roue
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}
+    \frametitle{Implémentation logicielle}
+    \framesubtitle{Réalisé (suite)}
+
+    Tâches (suite)
+    \begin{itemize}
+      \item Asservissement de la raquette
+      \begin{itemize}
+        \item Avec tachymètre
+        \item Consigne {\it en dur}
+        \item {\it Brouillon}
+      \end{itemize}
+    \end{itemize} \vspace{1em}
+
+    Pilote Bluetooth
+    \begin{itemize}
+      \item Recherche origine problème
+      \item Comparaison avec nxtOSEK
+      \item Perte de temps
+    \end{itemize}
+  \end{frame}
+
+  \begin{frame}
+    \frametitle{Implémentation logicielle}
+    \framesubtitle{Non-réalisé}
+
+    \begin{itemize}
+      \item Système de messagerie
+      \item Acquisition double capteur
+      \item Acquisition Arduino
+      \vspace{1em}
+      \item Pilote Bluetooth fonctionnel
+      \item Pilote I2C fonctionnel
+      \vspace{1em}
+      \item Initialisation Bluetooth (boucle)
+      \item Initialisation (StartUpHook)
+    \end{itemize}
+  \end{frame}
+
+  %%%
+
+  \begin{frame}
+    \frametitle{Autres}
+    \framesubtitle{}
+
+    \begin{itemize}
+      \item Enjeux du stage (génération)
+      \item Réseaux de Petri
+      \item Rapport préliminaire
+      \begin{itemize}
+        \item État de l'art
+        \item Contribution(s) ?
+      \end{itemize}
+      \item (Pas de connexion filaire)
+      %\item Exemples pour NXT pas compilable (dernière release)
+      %\begin{itemize}
+      %  \item Erreur génération Makefile
+      %  \item Pas de compatibilité .oil et GOIL2
+      %  \item Absence de typedef uintx et sintx
+      %\end{itemize}
+      %\item GOIL pas robuste
+    \end{itemize}
+  \end{frame}
+
+\end{document}

@@ -1,0 +1,4 @@
+doc/obj/*
+doc/*.pdf
+src/.dummy
+src/*.ec

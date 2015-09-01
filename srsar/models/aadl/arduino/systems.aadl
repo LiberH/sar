@@ -1,0 +1,22 @@
+package Arduino::Systems
+public
+	with Arduino::Processes;
+	with Arduino::Boards;
+	Arduino_System renames system Arduino::Boards::Arduino_Uno;
+	
+	system implementation Arduino_System.Impl extends Arduino::Boards::Arduino_Uno.Impl
+	subcomponents
+		Application : process Arduino::Processes::Arduino_Application.Impl;
+	
+	connections
+		Port1 : port Shield_Socket.UART_Message -> Application.Vision_Data;
+		Port2 : port DIO0                       -> Application.Presence_Data;
+		Port3 : port Application.I2C_Message    -> NXT_Plug.I2C_Message;
+	
+	properties
+	    Actual_Processor_Binding  => (reference (AVR)) applies to Application;
+	    Actual_Connection_Binding => (reference (UART_Bus)) applies to Port1;
+	    Actual_Connection_Binding => (reference (I2C_Req)) applies to Port3;
+	end Arduino_System.Impl;
+	
+end Arduino::Systems;

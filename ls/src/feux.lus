@@ -1,0 +1,31 @@
+node FEUX (TD, TI, CP: bool)
+returns (Veilleuses, Codes, Phares: bool);
+var Eteint: bool;
+let
+
+  -- Preconditon: Only one input in {TD, TI, CP} is true simultaneously. 
+  assert not (TD and TI);
+  assert not (TI and CP);
+  assert not (CP and TD);
+
+  Eteint = not TD -> if TI and pre Veilleuses then true else
+                     if TD and pre Eteint then false else
+		     pre Eteint;
+
+  Veilleuses = TD -> if TD and pre Eteint then true else
+                     if TI and (pre Codes or pre Phares) then true else
+                     if TD and pre Veilleuses then false else
+                     if TI and pre Veilleuses then false else
+                     pre Veilleuses;
+
+  Codes = false -> if TD and pre Veilleuses then true else
+                   if CP and pre Phares then true else
+		   if TI and pre Codes then false else
+		   if CP and pre Codes then false else
+		   pre Codes;
+
+  Phares = false -> if CP and pre Codes then true else
+                    if TI and pre Phares then false else
+                    if CP and pre Phares then false else
+                    pre Phares;
+tel

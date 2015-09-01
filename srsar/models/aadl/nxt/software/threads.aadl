@@ -1,0 +1,180 @@
+package NXT::Threads
+public
+	with NXT::Subprograms;
+
+	thread I2C_ISR
+	features
+		I2C_Message : in event data port;
+		I2C_Data    : out data port;
+	end I2C_ISR;
+	
+	thread implementation I2C_ISR.Impl
+	calls
+   		Call : { Compute_I2C_Message : subprogram NXT::Subprograms::Compute_I2C_Message; };
+   	
+   	connections
+    	Param1 : parameter I2C_Message                  -> Compute_I2C_Message.I2C_Message;
+    	Param2 : parameter Compute_I2C_Message.I2C_Data -> I2C_Data;
+    	
+	properties
+    	Dispatch_Protocol => Aperiodic;
+    	Priority          => 1; -- Arbitrary
+	end I2C_ISR.Impl;
+	
+	--
+	
+	thread Bluetooth_ISR
+	features
+		Bluetooth_Message : in event data port;
+		Bluetooth_Data    : out data port;
+	end Bluetooth_ISR;
+	
+	thread implementation Bluetooth_ISR.Impl
+	calls
+   		Call : { Compute_Bluetooth_Message : subprogram NXT::Subprograms::Compute_Bluetooth_Message; };
+   	
+   	connections
+    	Param1 : parameter Bluetooth_Message                        -> Compute_Bluetooth_Message.Bluetooth_Message;
+    	Param2 : parameter Compute_Bluetooth_Message.Bluetooth_Data -> Bluetooth_Data;
+    	
+	properties
+    	Dispatch_Protocol => Aperiodic;
+    	Priority          => 1; -- Arbitrary
+	end Bluetooth_ISR.Impl;
+
+	--
+	
+	thread Acquire_Distance_Task
+	features
+		I2C_Data       : in data port;
+		Distance_Value : out data port;
+	end Acquire_Distance_Task;
+	
+	thread implementation Acquire_Distance_Task.impl
+	calls
+   		Call : { Compute_Distance : subprogram NXT::Subprograms::Compute_Distance; };
+   			
+  	connections
+    	Param1 : parameter I2C_Data                        -> Compute_Distance.I2C_Data;
+    	Param2 : parameter Compute_Distance.Distance_Value -> Distance_Value;
+    	
+	properties
+    	Dispatch_Protocol => Periodic;
+    	Period            => 50 Ms; -- Arbitrary
+    	Priority          => 1;     -- Arbitrary
+	end Acquire_Distance_Task.impl;
+
+	--
+	
+	thread Acquire_Setpoint_Task
+	features
+		Bluetooth_Data : in data port;
+		Setpoint_Value : out data port;
+	end Acquire_Setpoint_Task;
+	
+	thread implementation Acquire_Setpoint_Task.impl
+	calls
+   		Call : { Compute_Setpoint : subprogram NXT::Subprograms::Compute_Setpoint; };
+   			
+  	connections
+    	Param1 : parameter Bluetooth_Data                  -> Compute_Setpoint.Bluetooth_Data;
+    	Param2 : parameter Compute_Setpoint.Setpoint_Value -> Setpoint_Value;
+    	
+	properties
+    	Dispatch_Protocol => Periodic;
+    	Period            => 50 Ms; -- Arbitrary
+    	Priority          => 1;     -- Arbitrary
+	end Acquire_Setpoint_Task.impl;
+
+	--
+	
+	thread Control_Wheel_Task
+	features
+		Distance_Value : in data port;
+		Setpoint_Value : in data port;
+		Speed_Value    : out data port;
+	end Control_Wheel_Task;
+	
+	thread implementation Control_Wheel_Task.impl
+	calls
+   		Call : { Compute_Wheel_Speed : subprogram NXT::Subprograms::Compute_Wheel_Speed; };
+   			
+  	connections
+    	Param1 : parameter Distance_Value            -> Compute_Wheel_Speed.Distance_Value;
+    	Param2 : parameter Setpoint_Value            -> Compute_Wheel_Speed.Setpoint_Value;
+    	Param3 : parameter Compute_Wheel_Speed.Speed_Value -> Speed_Value;
+    	
+	properties
+    	Dispatch_Protocol => Periodic;
+    	Period            => 50 Ms; -- Arbitrary
+    	Priority          => 1;     -- Arbitrary
+	end Control_Wheel_Task.impl;
+
+	--
+	
+	thread Control_Racket_Task
+	features
+		Button1_Value : in event port;
+		Button2_Value : in event port;
+		Speed_Value : out data port;
+	end Control_Racket_Task;
+	
+	thread implementation Control_Racket_Task.impl
+	calls
+   		Call : { Compute_Racket_Speed : subprogram NXT::Subprograms::Compute_Racket_Speed; };
+   			
+  	connections
+    	Param : parameter Compute_Racket_Speed.Speed_Value -> Speed_Value;
+    	
+	properties
+    	Dispatch_Protocol => Periodic;
+    	Period            => 50 Ms; -- Arbitrary
+    	Priority          => 1;     -- Arbitrary
+	end Control_Racket_Task.impl;
+
+	--
+	
+	thread Display_Task
+	end Display_Task;
+	
+	thread implementation Display_Task.Impl
+	properties
+    	Dispatch_Protocol => Periodic;
+    	Period            => 50 Ms; -- Arbitrary
+    	Priority          => 1;     -- Arbitrary
+	end Display_Task.Impl;
+	
+	--
+	
+	-- thread Background_Task
+	-- Why a background task is needed?
+	--
+	-- This task calls `ecrobot_init_bt_slave` function.
+	-- API documentation entry for `ecrobot_init_bt_slave` :
+	--   "Initializes NXT as the Bluetooth slave device and establish a
+	--    connection with a master device (PC, master NXT). This API needs to be
+	--    implemented in a loop (e.g. ecrobot_device_initialize or a background
+	--    task)."
+	-- > http://lejos-osek.sourceforge.net/ecrobot_c_api.htm#Bluetooth
+	--
+	-- An official use example :
+	-- > http://lejos-osek.sourceforge.net/nxt2nxt.htm
+	-- 
+	-- features
+	-- 	Bluetooth_Status : in data port;
+	-- end Background_Task;
+	-- 
+	-- thread implementation Background_Task.impl
+	-- 
+	-- calls
+   	-- 	Call : { Compute_Bluetooth: subprogram Software::Subprograms::Compute_Bluetooth; };
+   	-- 		
+  	-- connections
+    -- 	Param : parameter Bluetooth_Status -> Compute_Bluetooth.Bluetooth_Status;
+    -- 	
+	-- properties
+    -- 	Dispatch_Protocol => Background;
+    -- 	Priority          => 1; -- Arbitrary
+	-- end Background_Task.impl;
+
+end NXT::Threads;

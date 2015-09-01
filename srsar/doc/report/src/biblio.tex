@@ -1,0 +1,1079 @@
+\chapter{Rapport bibliographique}
+  \section*{Introduction}
+
+    Ce rapport constitue un livrable dans le cadre d'un stage. Celui-ci
+    s'integère au projet ANR ImpRo\footnotemark{} qui s'interesse aux problèmes
+    liés aux implémentations des modèles formels de systèmes embarqués
+    communicants.
+
+    \footnotetext{http://anr-impro.irccyn.ec-nantes.fr}
+
+    Ces modèles abstraient beaucoup d'aspects complexes ou de limitations de
+    leur environnement d'execution. La modélisation du temps, en particulier,
+    est habituellement idéale, avec des horloges infiniment précises, des tests
+    ou des changements de mode instantanés. L'objectif de ce projet est
+    d'étudier dans quelle mesure les implémentations de ces modèles préservent
+    leurs propriétés.
+
+    ~
+    
+    La robustesse d'un modèle caractérise l'importance de la différence existant
+    entre ce modèle et la mise en \oe uvre qui en est faite. Cette difference
+    réside, pour une part, dans l'écart entre la modèlisation d'un système et
+    son implementation, pour une autre part, dans l'écart entre la modélisation
+    de l'environement du système et l'environement réellement constaté. Si un
+    écart faible ne permet pas de préserver les propriétés constater sur le
+    modèle alors celui-ci est considéré comme peu robuste.
+
+    ~
+    
+    Deux approches de robustesse des modèles temporisés développées dans le
+    cadre de ce projet sont étudiés ici : la réduction des automates temporisés
+    et la synthèse de paramètres temporels. Avant de les présenter, il est
+    nécessaire d'introduire les concepts de base de la modélisation et la
+    vérification des modèles temporisés.
+
+    Pour ce faire, la section \ref{sec:modeles-temp} présente les concepts de
+    base de la modélisation et de la vérification des modèles temporisés. La
+    section \ref{sec:shrinking-timed-automata} présente une approche s'appuyant
+    sur la réduction des bornes des contraintes temporelles. Enfin, la section
+    \ref{sec:parameter-synthesis} présente la seconde approche qui se base sur
+    la paramètrisation des contraintes temporelles.
+
+  \section{Modèles temporisés}
+  \label{sec:modeles-temp}
+
+    \paragraph{Modélisation du temps.} ~
+    
+      ~
+
+      Une approche pour modéliser le temps est de le discrétiser, on parle de
+      temps discret. L'évolution du temps est représenté par une séquence
+      d'entiers s'accroissant de manière monotone. Cette approche est appropriée
+      pour certains types de circuits numériques synchrones où les changements
+      des valeurs des signaux sont pris en compte à travers une observation
+      synchrone.
+
+      ~
+
+      Évidemment, dans le cadres de processus physiques, les événements
+      n'arrivent pas toujours à des dates d'horloges prenant leurs valeurs dans
+      l'ensemble des entiers. La discrétisation du temps permet d'approximer le
+      temps continu en choisisant a priori un quantum fixe ce qui limite la
+      précision avec laquelle un système physique peut être modélisé. De fait,
+      les interactions nécessitant une résolution plus fine du temps sont
+      approximées.
+
+      ~
+
+      Une autre approche pour modéliser le temps est le temps dense. C'est un
+      modèle plus naturel pour modéliser les processus physique opérant en temps
+      continu. Les dates d'occurences d'évenements sont prises dans l'ensemble
+      des nombres réels. De la même façon ils s'accroissent de manière
+      monotone sans limite maximale. Ici, c'est cette dernière approche qui est
+      considérée.
+
+    \paragraph{Vérification des modèles temporisés.} ~
+
+      ~
+
+      La vérification de modèles est une approche fréquemment utilisée pour la
+      vérification de propriétés d'accessibilité. Étant donné un système, la
+      vérification d'une propriété d'accessibilité est réalisée par une
+      exploration exhaustive de l'espace d'états du système.
+
+      ~
+
+      L'espace d'état d'un système correspond à l'ensemble des états possibles
+      dans lesquels le système peut se trouver. Pour les automates temporisés,
+      ces espaces d'états sont infinis. Ceci est dû à l'infinité de valeurs que
+      peut possiblement prendre une horloge. Il est evidemment impossible de
+      réaliser une enumération exhaustive des états d'un espace d'état infini.
+
+      ~
+
+      Pour faire face à ces problèmes différentes abstractions de l'espace
+      d'état ont été proposées. Une vérification de modèle utilisant ces
+      abstractions consiste alors à l'exploration d'un d'espace d'états abstrait
+      équivalent significativement plus restreint. Ces abstrations consistent à
+      regrouper des valuations d'horloges par classes d'équivalences. Il est
+      donc nécessaire de trouver des classes d'équivalences à la fois efficaces
+      et expressives.
+
+      ~
+
+      Quand bien même des méthodes abstraitisant cet espace infini sont
+      utilisées, la taille de l'espace d'état abstrait équivalent croit
+      exponentiellement avec de nombreux paramètres liés au système considéré
+      comme leur nombre d'horloges et la taille des constantes auxquelles ses
+      horloges sont comparées. Il est alors souvent trop couteux en temps et en
+      mémoire de réaliser une vérification de modèle. Ce problème est appelé
+      explosion de l'espace d'états.
+
+    \paragraph{Notations formelles.} ~
+
+      ~
+
+      Une execution d'un système temporisé peut être définie en
+      tant qu'un mot temporisé. Un mot temporisé sur un alphabet $\Sigma$ est
+      une séquence $\omega = (\sigma_0,t_0)(\sigma_1,t_1)\dots(\sigma_n,t_n)$
+      telle que $\forall i, \sigma_i \in \Sigma, t_i \in \mathbb{R}_{\geq 0}$ et
+      $t_{i+1} \geq t_i$.
+
+      ~
+
+      Les mots temporisés sont reconnus par les systèmes de transitions
+      temporisés. Ceux-ci sont les modèles élémentaires de description des
+      systèmes temporisés, en effet, les autres modèles expriment leur
+      sémantique sous forme de systèmes de transistions temporisés.
+      Un système de transitions temporisés est un tuple $\tau = (S, s_0, \Sigma,
+      \rightarrow)$ tel que :
+
+      \begin{itemize}
+        \item $S$ est un ensemble fini d'états ;
+        \item $s_0\in S$ est l'état initial ;
+        \item $\Sigma$ un alphabet fini, disjoint de $\mathbb{R}_{\geq 0}$ ;
+        \item $\rightarrow \subseteq S \times (\Sigma \cup \mathbb{R}_{\geq 0})
+          \times S$ est un ensemble fini de transitions.
+      \end{itemize}
+      
+      ~
+      
+      Une transition $\xrightarrow{a}$, avec $a \in \Sigma$ est une transition
+      d'action et une transition $\xrightarrow{t}$, avec $t \in \mathbb{R}_{\geq
+        0}$ est une transition de délai. On note $s\xrightarrow{t,a}s'$ pour
+      une transition mixte s'il existe $s'' \in \Sigma$ tel que
+      $s\xrightarrow{t}s''\xrightarrow{a}s'$.
+            
+    \subsection{Automates temporisés.}
+    
+      % TODO: historique.
+    
+      Une première formalisation des modèles temporisés peut-être celle des
+      automates temporisés \cite{alur94}. Ils définissent une extenstion des
+      automates finis, intégrant à leur formalisme des mécanismes d'horloges. La
+      figure \ref{fig:automate-tempo} donne la réprésentation graphique d'un
+      automate temporisé.
+
+      \begin{figure}[!ht]
+        \centering \small
+        \begin{tikzpicture}[auto]
+            \draw node[state,initial, initial text={},scale=0.7] (l1) {$off$} ;
+            \draw node[state, right=3cm of l1,scale=0.7] (l2) {$on$} ;
+            \draw node [below of=l2,scale=0.8] {\fbox{$x\leq 2$}} ;
+            \draw[->] (l2) to [bend right=30] node [] {$x\geq 1$} node [swap]
+                 {$switch\_off$} (l1) ; 
+            \draw[->] (l1) to [bend right=30] node [] {$switch\_on$} node [swap]
+                 {$x:=0$} (l2) ; 
+        \end{tikzpicture}
+        \caption{Répresentation graphique d'un automate temporisé.}
+        \label{fig:automate-tempo}
+      \end{figure}
+
+      %En effet, les automates finis ne permettent pas de raisonner
+      %sur des systèmes interagissant avec des processus physiques. En
+      %effet, le fonctionnement correct d'un système de controle d'un
+      %avion ou d'un grille-pain dépend crutiallement de
+      %considérations temporelles.
+      
+      ~
+
+      La définition des automates temporisés proposée augmente les automates
+      finis d'annotations sur les transitions correspondant à des contraintes
+      temporelles utilisant un nombre finis d'horloges prennant leurs valeurs
+      dans l'ensemble des rationels.
+
+      Les horloges peuvent être remises à zéro, indépendemment les unes des
+      autres, lors d'une transition dans l'automate. Elles ont pour rôle de
+      garder une trace du temps écoulé depuis leur dernière remise à zéro.
+
+      ~
+
+      Les transitions de l'automate ne peuvent être prises que si les valeurs
+      courantes des horloges satisfont les contraintes temporelles qui y sont
+      associées. Celles-ci sont de la forme $\delta := x \le c ~|~ c \le x ~|~
+      \neg \delta ~|~ \delta' \wedge \delta''$, avec $x$ une horloge et $c \in
+      \mathbb{Q}$ une constante.
+
+      La forme des contraintes temporelles résulte d'un compromis entre
+      décidabilité et efficacité. En effet, les algorithmes de vérification qui
+      manipulent ces contraintes nécessitent un format suffisamment réduit pour
+      être décidable mais suffisamment expressif pour être efficaces.
+      
+      ~
+
+      Les automates temporisés permettent également d'exprimer des contraintes
+      temporelles sur les localités \cite{henzinger94}. Ces contraintes, appelées
+      invariants, permettent d'assurer une progression de l'exécution d'un
+      automate. En effet, l'exécution de l'automate ne peut laisser s'écouler le
+      temps qu'en assurant la satisfaction de l'invariant de la localité dans
+      laquelle il se trouve.
+      
+      \paragraph{Syntaxe des automates temporisés.} ~
+
+        ~
+
+        \noindent
+        Un automate temporisé est un tuple $\mathcal{A} =
+        (\Sigma,C,L,l_0,\mathrm{Inv},E)$ tel que :
+
+        \begin{itemize}
+          \item $\Sigma$ est un alphabet fini ;
+          \item $C$ est un ensemble fini d'horloges ;
+          \item $L$ est un ensemble fini de localités ;
+          \item $l_0 \in L$ est la localité initiale ;
+          \item $\mathrm{Inv}$ est une fonction associant un invariant temporel
+            à une localité ;
+          \item $E$ est un ensemble fini de transistions.
+        \end{itemize}
+      
+        ~
+
+        \noindent
+        Une transistion $e \in E$ est un tuple $e = (l, \delta, a, \lambda, l')$
+        tel que :
+      
+        \begin{itemize}
+          \item $l$ est la localité d'origine et $l'$ est la localité d'arrivé ;
+          \item $\delta$ est une contrainte temporelle sur $C$ de la forme
+            exprimée ci-dessus ;
+          \item $a$ est un symbole de l'alphabet $\Sigma$ ;
+          \item $\lambda \subseteq C$ est un ensemble d'horloges à
+            réinitialiser.
+        \end{itemize}
+
+      \paragraph{Sémantique des automates temporisés.} ~
+      
+        ~
+        
+        Une valuation $v$ pour un ensemble d'horloges $C$ est une fonction définie
+        sur $C \mapsto \mathbb{Q}_{\geq 0}$, par $\forall x \in C$, $v(x) \in
+        \mathbb{Q}$. La valuation nulle $\vec{0}_C$ sur $C$ est définie par
+        $\forall x \in C$, $\vec{0}_C(x) = 0$. Pour $\lambda \subseteq C$ un
+        sous-ensemble d'horloges, $v[\lambda]$ est la valuation sur $C$ telle que
+        $v[\lambda](x) = 0$ si $x \in \lambda$ et $v[\lambda](x) = v(x)$ sinon.
+        Enfin, $v + d$, pour $d \geq 0$, est la valuation telle que $\forall x\in
+        C$, $(v + d)(x) = v(x) + d$.
+      
+        ~
+      
+        Un état étendu est une paire $(l,v)$, avec $l$ une localité et $v$ une
+        valuation d'un ensemble d'horloges $C$ telle que $\forall x \in C$,
+        $v(x) \in \mathbb{Q}$. La sémantique d'un automate temporisé
+        $\mathcal{A}$, notée $\llbracket\mathcal{A}\rrbracket$, est définie par
+        le système de transitions temporisées associé $\tau(\mathcal{A}) = (S,
+        s_0, \Sigma, \rightarrow)$, tel que :
+        
+        \begin{itemize}
+          \item $S = \{(l,v) \in L \times (C \mapsto \mathbb{R}_{\geq 0}) \mid v
+            \models \mathrm{Inv}(l)\}$ est l'ensemble des états ;
+          \item $s_0 = \{(l_0,\vec{0}_C)\}$ est l'état initial ;
+          \item $\rightarrow \in S\times (\Sigma \cup \mathbb{R}_{\geq 0})
+            \times S$.
+        \end{itemize}
+        
+        ~
+
+        La transition d'action $\xrightarrow{a}$ est définie par $(l,v)
+        \xrightarrow{a}(l',v')$ si et seulement si $l\xrightarrow{\delta, a,
+          \lambda}l' \in E$, $v \models \delta$, $v'\models \mathrm{Inv}(l')$ et
+        $v' = v[\lambda]$. La transition de délai $\xrightarrow{d}$ est définie
+        par $(l,v) \xrightarrow{d}(l,v+d)$ pour $d \geq 0$ si et seulement si
+        $\forall d' \leq t, v+d' \models \mathrm{Inv}(l)$.
+
+      \subsubsection{Graphe des régions}
+    
+        Tel quel, les automates temporisés à temps dense ont un espace d'états
+        infini. En effet, les horloges manipulées peuvent prendre une infinité
+        de valeurs.
+        
+        Une première méthode de répresentation symbolique, le graphe des régions
+        \cite{alur94}, permet de réprésenter l'espace d'états d'un automate
+        temporisé de manière finie.
+
+        ~
+
+        La méthode développée consiste à traduire un automate temporisé en un
+        automate fini bisimilaire. Pour se faire, ce ne sont plus les valuations
+        réelles des horloges qui sont considérées afin de satisfaire les gardes
+        temporelles sur les transitions mais des classes d'équivalence de
+        valuations d'horloges. Cette méthode peut être vue comme une façon de se
+        ramener à un modèle discret.
+        
+        La notion de région définie une classe d'équivalence entre valuations
+        d'horloges. Une région peut être caractérisée de manière unique par un
+        ensemble de contraintes d'horloges qu'elle satisfait. Il est alors
+        possible d'exprimer un automate temporisé en un automate de régions
+        équivalent, ce dernier ayant un espace d'état fini. La figure
+        \ref{fig:graphe-regions} donne une répresentation graphique de
+        l'ensemble des régions distinctes en considérant deux horloges.
+
+        ~
+
+        \begin{figure}[!ht]
+          \centering
+          \begin{tikzpicture}[scale=1.3]
+            \path[draw=black,->,name path=X] (0,0) -- (1.8,0) node[anchor=west]
+                 {$x_1$}; 
+            \path[draw=black,->,name path=Y] (0,0) -- (0,1.2) node[anchor= east]
+                 {$x_2$}; 
+            \path[draw=black] (0,0.6) -- (1.8,0.6){};
+            \path[draw=black] (0.6,0) -- (0.6,1.2){};
+            \path[draw=black] (1.2,0) -- (1.2,1.2){};
+            \path[draw=black] (0,0)   -- (0.6,0.6){};
+            \path[draw=black] (0.6,0) -- (1.2,0.6){};
+            \fill[color=gray,opacity=0.5] (0,0)--(0.6,0)--(0.6,0.6);
+          \end{tikzpicture}
+          \caption{Répresentation graphique des régions pour deux horloges. \\
+            $c_{x_1} = 2$, $c_{x_2} = 1$ ; 28 régions : 6 points, 14 segments, 8
+            polygones. \\ 
+            Région grisée : $0 < x_2 < x_1 < 1$.}
+          \label{fig:graphe-regions}
+        \end{figure}
+
+        Soit $c_x$ la plus grande constante apparaissant dans les contraintes de
+        l'horloges $x \in C$. Soit $\lfloor k \rfloor$ la partie entière de $k$
+        et $\{k\}$ la partie décimale de $k$. Deux valuations d'horloges $v$ et
+        $v'$ sont équivalentes, {\it i.e.} font partie d'une même région, si et
+        seulement si :
+
+        \begin{itemize}
+          \item $\forall x \in C$, soit $\lfloor v(x) \rfloor = \lfloor v'(x)
+            \rfloor$, soit $v(x) > c_x$ et $v'(x) > c_x$ ;
+          \item $\forall x \in C$, si $v(x) \le c_x$ alors $\{v(x)\} = 0$ si et
+            seulement si $\{v'(x)\} = 0$ ;
+          \item $\forall x, y \in C$, si $v(x) < c_x$ et $v(y) < c_y$ alors
+            $\{v(x)\} \le \{v(y)\}$, si et seulement si $\{v'(x)\} \le
+            \{v'(y)\}$.
+        \end{itemize}
+
+        ~
+
+        Soit $\mathcal{A}$ un automate temporisé, le graphe des régions
+        $\mathcal{R}(\mathcal{A})$ est un automate temporisé tel que :
+      
+        \begin{itemize}
+          \item les états de $\mathcal{R}(\mathcal{A})$ sont de la forme
+            $(l,r)$, avec $l$ une localité et $r$ une région ;
+          \item l'état initial est de la forme $(l_0,r_0)$, avec $l_0$ la
+            localité initiale et $r_0$ la région initiale telle que $\forall x
+            \in C$, $v(x) = 0$ ;
+          \item $\mathcal{R}(\mathcal{A})$ a une transition
+            $(l,r)\xrightarrow{a}(l',r')$ s'il existe une transition
+            $(l,\delta,a,\lambda,l') \in E$ et une région $r''$ telle que $r''$
+            est un successeur temporel de $r$, $r''$ satisfait $\delta$ et $r' =
+            r''[\lambda]$.
+        \end{itemize}
+
+      \subsubsection{Graphe des zones}
+    
+        La mise en \oe uvre de la vérification symbolique de modèles à partir du
+        graphe de régions souffre tout de même du problème d'explosion
+        combinatoire. En effet, l'espace d'états croit exponentiellement avec le
+        nombre d'horloges et la taille des constantes des contraintes
+        temporelles.
+      
+        L'abstraction par graphe de zones \cite{daws98} propose une solution
+        pour réduire l'espace d'états tout en préservant des propriétés
+        d'accessibilité équivalente au graphe des régions.
+      
+        ~
+
+        Une zone sur $C$ est une conjonction de bornes de la forme $\bigwedge_{0
+          \le i \neq j \le n} x_i - x_j \prec_{ij} d_{ij}$ pour $\prec_{ij} \in
+        \{ <, \le \}$ et $d_{ij} \in \mathbb{Z}$, l'ensemble des entiers
+        relatifs. La borne $B_{ij}$ est définie par $x_i - x_j \prec_{ij}
+        d_{ij}$. Une valuation $v$ satisfait une zone $Z$ si et seulement si
+        $v$ satisfait $B_{ij}$ pour tout $0 \le i \neq j \le n$. On peut alors
+        voir une zone comme l'ensemble des valuations qui la satisfont.
+
+        ~
+
+        Soit $\mathcal{A}$ un automate temporisé, le graphe des zones
+        $\mathcal{Z}(\mathcal{A})$ est un automate temporisé tel que :
+      
+        \begin{itemize}
+          \item les états de $\mathcal{Z}(\mathcal{A})$ sont de la forme
+            $(l,Z)$, avec $l$ une localité et $Z$ une zone ;
+          \item l'état initial est de la forme $(l_0,Z_0)$, avec $l_0$ la
+            localité initiale et $Z_0$ la zone initiale telle que $\forall x \in
+            C$, $v(x) = 0$ ;
+          \item $\mathcal{Z}(\mathcal{A})$ a une transition
+            $(l,Z)\xrightarrow{a}(l',Z')$ s'il existe une transition
+            $(l,\delta,a,\lambda,l') \in E$ et une zone $Z''$ telle que $Z''$
+            est un successeur temporel de $Z$, $Z''$ satisfait $\delta$ et $Z' =
+            Z''[\lambda]$.
+        \end{itemize}
+        ~
+
+        Une zone composée de contraintes sur deux horloges peut être représentée
+        par un polygone sur un plan orthonormé dont les axes définissent les
+        valeurs prises respectivement par l'une et par l'autre horloge. La
+        figure \ref{fig:representation-zone} donne un exemple de répresentation
+        graphique d'une telle configuration. Généralisé à un nombre indéfini
+        $n$ d'horloges, une zone peut être représentée par un polyèdre sur un
+        repère à $n$ dimensions.
+
+        \begin{figure}[!ht]
+          \centering
+          \begin{tikzpicture}[scale=1.3]
+            \path[draw=black,->,name path=X] (0,0) -- (1.8,0) node[anchor=west]
+                 {$x_1$}; 
+            \path[draw=black,->,name path=Y] (0,0) -- (0,1.8) node[anchor= east]
+                 {$x_2$}; 
+            \path[draw=black] (0.3,0) -- (0.3,0.3){};
+            \path[draw=black] (0.3,0.3) -- (1.1,1.1){};
+            \path[draw=black] (1.2,0) -- (1.7,0.5){};
+            \fill[color=gray,opacity=0.5]
+            (0.3,0)--(0.3,0.3)--(1.1,1.1)--(1.7,0.5)--(1.2,0); 
+          \end{tikzpicture}
+          \caption{Répresentation graphique d'une zone à deux horloges. \\
+            $Z = x_0 - x_1 \leq 0 \wedge x_0 - x_2 \leq 1 \wedge x_1 - x_2 \leq
+            4 \wedge x_2 - x_1 \leq 0$, \\
+            avec $x_0$ une horloge constante à valeur $0$.}
+          \label{fig:representation-zone}
+        \end{figure}
+
+        \paragraph{Matrice de differences bornées.} ~
+
+          ~
+
+          Un matrice de différences bornées est un objet mathématique pouvant
+          être utilisé pour représenter une zone \cite{dill90}. Les constantes
+          temporelles y sont données en tant que bornes supérieures et bornes
+          inférieures. La figure \ref{fig:matrice-diff} donne un exemple de
+          matrice de differences bornées.
+
+          \begin{figure}[!ht]
+            \centering
+            \begin{tabular}{c|ccc}
+              ~ & $x_0$ & $x_1$ & $x_2$ \\ \hline
+              $x_0 $ & $(0,\leq)$ & $(0,\leq)$ & $(1,\leq)$ \\
+              $x_1 $ & $(\infty,\leq)$ & $(0,\leq)$ & $(4,\leq)$ \\
+              $x_2 $ & $(\infty,\leq)$ & $(0,\leq)$ & ~$(0,\leq)$
+              ~
+            \end{tabular} ~$\equiv$~
+              $\left(
+              \begin{array}{ccc}
+                0 & 0 & 1 \\
+                \infty & 0 & 4 \\
+                \infty & 0 & 0
+              \end{array}
+              \right)$
+
+            \caption{Une matrice de différences bornées. \\
+              Cette matrice représente la zone définie par la figure
+              \ref{fig:representation-zone}.}
+            \label{fig:matrice-diff}
+          \end{figure}
+
+          Une zone $Z$ sur l'ensemble d'horloges $C$ peut être définie comme une
+          conjonction de contraintes du type $x - y \prec c$, avec $x, y \in C$,
+          $\prec~\in \{<,\le\}$ et $c \in \mathbb{Z}$. Lorsque la conjonction
+          contient $x - y \prec c$ et $x - y \prec c'$ seule la contrainte $x -
+          y \prec min(c,c')$ est conservée.
+
+          ~
+
+          La construction de la matrice de différences bornées nécessite
+          l'utilisation d'un ensemble d'horloges $C_0 = C \cup x_0$, avec $x_0$
+          une horloge constante à valeur $0$. La zone $Z$ sur l'ensemble
+          d'horloges $C$ peut être représentée par la matrice de différences
+          bornées $\mathcal{Z}$ telle que $\mathcal{Z}_{ij} = (c,\prec)$ si et
+          seulement si $x_i - y_j \prec c$.
+
+          Pour manipuler efficacement les matrices de différences bornées il
+          existe deux opérations fondamentales sur les bornes. La comparaison
+          est définie par $(c, \prec) < \infty$, $(c, <) < (c, \leq)$ et $(c_1,
+          \prec_1) < (c_2, \prec_2)$ si $c_1 < c_2$. L'addition est définie par
+          $c + \infty = \infty$, $(c_1, \leq) + (c_2, \leq) = (c_1 + c_2, \leq)$
+          et $(c_1, <) + (c_2, \prec) = (c_1 + c_2, <)$. À partir de ces deux
+          opérations sur les bornes un ensemble important de traitements sur les
+          matrices de différences bornées peuvent être réalisés
+          \cite{bengtsson02}.
+          
+    \subsection{Réseaux de Petri temporels}
+
+      % TODO: historique.
+
+      Différentes extensions des réseaux de Petri intégrant des notions
+      temporelles existent. Les réseaux de Petri T-temporels \cite{merlin74}
+      définissent des intervalles de tirs sur les transistions. La figure
+      \ref{fig:petri-temporel} donne une représentation graphique d'un réseau
+      de Petri temporel.
+      
+      ~
+
+      Les réseaux de Petri temporels permettent d'exprimer des contraintes
+      temporelles sur les instants d'activation des transitions. Ils sont, de
+      fait, généralement utilisés pour modéliser et vérifier des systèmes
+      temporisés. Ici, c'est ce type de réseaux de Perti qui est considéré.
+      
+      \begin{figure}[!ht]
+        \centering \small
+        \tikzset{
+          place/.style={circle,thick,draw=black,minimum size=6mm},
+          transition/.style={rectangle,thick,draw=black,minimum width=8mm,inner
+            ysep=2pt}
+        }
+        \begin{tikzpicture}[node distance=1.5cm,>=stealth',bend angle=45,auto]
+          \node [place,tokens=1] (w1) [label=above:$P_2$] {};
+          \node [place,inner sep=0pt, minimum size=0pt] (blank) [left of=w1] {};
+          \node [place,tokens=1] (c1) [left of=blank, label=above:$P_1$] {};
+          \node [transition] (e1) [below of=blank, label=right:{$t_1[0,4]$}] {}
+            edge [pre] (w1)
+            edge [pre] (c1);
+          \node [place] (d1) [below of=e1, label=below:$P_3$] {}
+            edge [pre] (e1);
+        \end{tikzpicture}
+        \caption{Répresentation graphique d'un réseau de Petri temporel.}
+        \label{fig:petri-temporel}
+      \end{figure}
+      
+      \paragraph{Syntaxe des réseaux de Petri temporles.} ~
+
+        ~
+
+        \noindent
+        Un réseaux de Petri temporel est un tuple $N =
+        (P,T,{}^{\bullet}(.),(.){}^{\bullet},M_0,\alpha,\beta)$ tel que :
+      
+        \begin{itemize}
+          \item $P$ est un ensemble fini de places ;
+          \item $T$ est un ensemble fini de transitions ;
+          \item ${}^{\bullet}(.) \in (\mathbb{N}^P)^T$ est la fonction
+            d'incidence arrière ;
+          \item $(.){}^{\bullet} \in (\mathbb{N}^P)^T$ est la fonction
+            d'incidence avant ;
+          \item $M_0 \in \mathbb{N}^P$ est le marquage initial ;
+          \item $\alpha \in (\mathbb{Q}^+)^T$ et $\beta \in (\mathbb{Q}^+ \cup
+            \{ \infty \})^T$ sont respectivement les fonctions associant un
+            instant de tir au plus tôt et au plus tard à une transition.
+        \end{itemize}
+      
+      \paragraph{Sémantique des réseaux de Petri temporels.} ~
+
+        ~
+      
+        La sémantique d'un réseau de Petri temporel $\mathcal{T}$ est définie
+        par le système de transitions temporisées associé $\tau(\mathcal{T})
+        = (S, s_0, T, \rightarrow)$, tel que :
+        
+        \begin{itemize}
+          \item $S = \{(M,v) \in \mathbb{N} \times (\mathbb{R}^+)^T\}$ est
+            l'ensemble des états ;
+          \item $s_0 = (M_0, \vec{0}_T)$ est l'état initial, avec $\vec{0}_T$ la
+            valuation initiale telle que $\forall t \in T, \vec{0}_T(t) = 0$ ;
+          \item $\rightarrow \in S \times (T \cup \mathbb{R}_{\geq 0}) \times
+            S$.
+        \end{itemize}
+        
+        ~
+
+        La transition d'action $\xrightarrow{t}$ est définie par $(M,v)
+        \xrightarrow{t}(M',v')$ si et seulement si $M \geq {}^{\bullet}t$, $M' =
+        M - {}^{\bullet}t + t{}^{\bullet}$, $\alpha(t) \leq v(t) \leq \beta(t)$
+        et $v'$ égale $v$ aux réinitialisations des horloges des transistions
+        nouvellement activées près. La transistion de délai $\xrightarrow{d}$
+        est définie par $(M,v) \xrightarrow{d} (M,v')$ avec $v' = v + d$, pour
+        $d \geq 0$ si et seulement si $\forall t, M \geq {}^{\bullet}t
+        \Rightarrow v'(t) \leq \beta (t)$.
+    
+      \subsubsection{Graphe des classes d'états}
+      \label{sec:state-class-graph}
+    
+        La même problématique d'explosion de la taille de l'espace d'état se
+        pose pour la vérification des réseaux de Petri temporels. La
+        réprésentation symbolique par graphe des classes des états
+        \cite{berthomieu91} est l'approche communément utilisée pour réduire la
+        taille de l'espace d'état des réseaux de Petri temporels.
+        
+        ~
+
+        L'intuition de cette approche est la suivante. Usuellement, il est
+        considéré un marquage d'arrivée $M'$ atteint depuis un marquage
+        d'origine $M$ suivant une séquence de tir $\omega$ couplé à une séquence
+        d'instants de tirs $\tau$.
+
+        Ici, il est considéré l'ensemble des marquages atteignables depuis le
+        marquage d'origine $M$. Cet ensemble est déterminé par le couplage de
+        toutes les séquences d'instants de tirs $\tau_i$ à une même séquence de
+        tir $\omega$. Cet ensemble d'états, agrégé en un pseudo-état, est appelé
+        classe d'état.
+
+        %La figure
+        %\ref{fig:graphe-classes} donne une répresentation graphique d'un graphe
+        %des classes d'états.
+      
+        %\begin{figure}[!ht]
+        %  \caption{Un graphe des classes d'états.}
+        %  \label{fig:graphe-classes}
+        %\end{figure}
+        
+        ~
+        
+        Ainsi, une classe d'états $\mathcal{C}$ est l'union de toute les valeurs
+        de tir possible pour un marquage donné noté sous la forme $\mathcal{C} =
+        (M,D)$, avec $M$ un marquage et $D$ un domaine.
+
+        Le domaine $D$ représente de manière finie un nombre infini d'instants
+        possibles de tirs de transitions à partir du marquage $M$. Ce domaine
+        peut être exprimé par un ensemble de solutions de systèmes d'inéquations
+        de la forme $\forall i$, $\alpha_i \leq t(i) \leq \beta_i$ tel que toute
+        transition $t(i)$ soit activée, $\forall j, k$, $j \neq k$, $t(j) - t(k)
+        \leq \gamma_{jk}$ tel que toute transition $t(j)$ et $t(k)$ soient
+        activées.
+
+  \section{Réduction des automates temporisés }
+  \label{sec:shrinking-timed-automata}
+
+    La plupart du temps, les modèles temporisés à temps dense font l'hypothèse
+    d'horloges parfaitement continues et ayant des temps de réaction
+    instantanés. Ces propriétés sur les horloges ne sont en fait jamais
+    constatées dans les implementations materielles qui en sont faites. Les
+    implementations des automates temporisés souffrent de l'imprécision et de la
+    finitude des horloges matérielles. La question de l'implémentabilité se pose
+    alors. Est-il possible d'implémenter un modèle tout en en conservant les
+    propriétés ?
+    
+    ~
+
+    Une première approche \cite{dewulf04} consiste à relacher les contraintes
+    temporelles en augmentant les intervalles de tirs des transitions. Une
+    contrainte temporelle de la forme $x \in [a, b]$ devient alors $x \in
+    [a-\Delta, b+\Delta]$, avec $\Delta$ un paramètre positif. La vérification
+    de robustesses des modèles consiste alors à décider de l'existence d'une
+    valeur pour $\Delta$ telle que les propriétés soient satisfaites.
+    
+    \subsection{Principe de réduction}
+    
+      L'approche qui nous interesse ici \cite{sankur14} est inverse à celle
+      décrite ci-dessus. Au lieu d'élargir les intervalles temporelles de tir
+      des transtions, celles-ci sont réduites. La méthode mise en oeuvre est la
+      réduction paramètrée des contraintes temporelles. Une contrainte de la
+      forme $x \in [a, b]$ devient alors $x \in [a+\delta, b-\delta]$, avec
+      $\delta$ un paramètre positif. Un automate temporisé $\mathcal{A}$ est dit
+      réductible si il peut être réduit à un automate $\mathcal{A}_R$, non
+      bloquant et pouvant simuler $\mathcal{A}$.
+    
+      Réduire les contraintes temporelles d'un modèle temporisés équivaut à
+      suposer que celui-ci n'est pas assez sévèrement contrainte temporellement
+      vis-à-vis du système considéré. L'obention de la valeur du paramètre de
+      réduction donne alors une indication quand à la robustesse du modèle. Si
+      celui-ci est petit, relativement à l'ampleur des contraintes temporelles
+      du modèle, alors le modèle est peu robuste. En effet, si celui-ci est
+      effectivement un petit peu sous-contraint temporellement, l'implémentation
+      ne conservera pas les propriétés du modèle non-réduit.
+
+      ~
+      
+      Soit $\mathcal{S}_1$ et $\mathcal{S}_2$ deux systèmes de transitions
+      temporisées avec $S_1$ et $S_2$ leur ensemble fini d'états respectif.  La
+      relation $R \subseteq S_1 \times S_2$, est une {\em simulation temporisée}
+      (resp. {\em simulation temporisée abstraite}) si, pour toute paire $(s_1,
+      s_2) \in R$, $s_1 \xrightarrow{\sigma(T)} s'_1$, pour une paire quelconque
+      $(\sigma, T) \in \Sigma \times \mathbb{R}_{\geq 0}$, alors $s_2
+      \xrightarrow{\sigma(T)} s'_2$ (resp. $s_2 \xrightarrow{\sigma(T')} s'_2$
+      pour un $T' \in \mathbb{R}_{\geq 0}$ quelconque). Un état $s_2$ {\em
+        simule temporellement} (resp. {\em simule temporellement abstraitement})
+      un état $s_1$ s'il existe un simulation temporisée (resp. {\em simulation
+        temporisée abstraite}) $R$ telle que $(s_1, s_2) \in R$. Dans ce cas, la
+      notation suivante est utilisée : $s_1 \sqsubseteq s_2$ (resp. $s_1
+      \sqsubseteq_{t.a.} s_2$).
+      
+      ~
+
+      L'automate $\mathcal{A}_R$ n'est pas réduit par un seul paramètre $\delta$
+      mais par un paramètre par contrainte temporelle atomique. Une méthode
+      symbolique permet de determiner automatiquement les valeurs de ces
+      paramètres tel que les proriétés du modèles soient conservées, si elles
+      existent.
+
+      La réduction d'un automate temporisé $\mathcal{A}$ est noté
+      $\mathcal{A}_{-\vec{k}d}$, avec $\vec{k} = (k_i)_{i \in I} \in
+      \mathbb{N}^I_{>0}$ et $d > 0$. Un automate temporisé $\mathcal{A}$ est
+      réductible s'il existe $\vec{k} \in \mathbb{N}^I_{>0}$ et $d_0 \in
+      \mathbb{Q}_{>0}$ tel que pour tout $0 \leq d \leq d_0$ :
+      
+      \begin{itemize}
+        \item $\llbracket\mathcal{A}_{-\vec{k}d}\rrbracket$ est non-bloquant ;
+        \item $\llbracket\mathcal{A}\rrbracket \sqsubseteq_{t.a.}
+          \llbracket\mathcal{A}_{-\vec{k}d}\rrbracket$, avec pour chaque région
+          $(l,r)$ du graphe des régions $\mathcal{R}(\mathcal{A})$, il y a une
+          contraintre $\delta$ et un vecteur $\vec{h}$ d'entiers positifs tel
+          que, pour tout $0 \leq d \leq d_0$, l'ensemble des $(l,r)$ simulés
+          dans $\llbracket\mathcal{A}_{-\vec{k}d}\rrbracket$ égal
+          $\llbracket\delta_{-\vec{h}d}\rrbracket$.
+      \end{itemize}
+      
+      ~
+      
+      L'automate est réductible vis-à-vis du non-blocage (resp. de la
+      simulation) seulement si la première (resp. seconde) condition tient. Les
+      valeurs de $\vec{k}$ et $d_0$ sont les paramètres de réduction de
+      $\mathcal{A}$.
+
+    \subsection{Détection des comportements irréalistes}
+
+      Au delà du fait de tester la robustesse d'un modèle temporisé, la
+      réduction des automates temporisés permet d'exclure certains comportements
+      temporelles irréalistes induis par une imprécision dans les contraintes
+      temporelles.
+    
+      \paragraph{Le paradoxe de Zénon.} ~
+
+        ~
+
+        Zénon d'Élée est un philosophe grec ayant vécu au cinquième scièle avant
+        l'ère commune. Il a énoncé plusieurs paradoxes tendant à montrer que le
+        mouvement est une illusion. Ci-dessus, une formulation d'un paradoxe de
+        Zénon rapporté par Aristote dans {\it Physique} (VI:9, 239b15).
+      
+        \begin{quote} \em
+          << Dans une course, le courreur le plus rapide ne peut jamais dépasser
+          le plus lent. En effet, le poursuivant doit d'abord atteindre le point
+          où se trouve celui qui est poursuivit. Le plus lent détient donc
+          toujours une avance sur le plus rapide. >>
+        \end{quote}
+
+        ~
+
+        Une déclinaison des comportements temporels irréalistes est le
+        comportement Zénon. Dans le cadre de la modélisation et la vérification
+        des automates temporisés il est défini comme le fait que le système
+        modélisé puisse réaliser un nombre infini d'actions dans un intervalle
+        de temps fini.
+    
+        ~
+
+        Soit $\mathcal{A}$ un automate temporisé avec une horloge $x \in C$ tel
+        que chaque transition soit gardée par $x \ge 0$ et voit $x$ être
+        réinitialisée. Un tel automate peut avoir un comportement Zénon si
+        chaque transition est tirée pour des valuations telles que $v(x) =
+        0$. Cependant, une analyse de réduction de cette automate en un automate
+        réduit $\mathcal{A}_R$ transforme les gadres sur $x$ en $x \ge
+        \delta_i$, avec $\delta_i > 0$. Le comporement Zénon n'est alors plus
+        possible.
+        
+    \subsection{Implementation d'un outil}
+    
+      La technique de réduction des automates temporisés présentée ci-dessus est
+      implementé dans un outil appelé \textsc{Shrinktech} \cite{sankur13}. Cet
+      outil permet d'analyser la réductibilité des automates temporisés et de
+      synthétiser les paramètres d'une réduction.
+      
+      Une étape préliminaire est nécessaire au calcul des paramètres de
+      réduction d'un automate temporisé. Il faut produire un automate fini
+      bisimiliaire à ce dernier. Ce service peut être rendu par
+      \textsc{Shrinktech} qui délégue alors cette tâche à un autre outil de
+      vérification des modèles temporisés nommé \textsc{Kronos} \cite{yovine97}.
+
+      ~
+
+      Étant donné un système modélisé par un réseau d'automates temporisés,
+      c'est à dire un ensemble d'automates temporisés interagissant,
+      \textsc{Shrinktech} peut réaliser deux actions. Soit il retourne un
+      contre-exemple exprimant la non-réductibilité du modèle sous forme d'un
+      chemin ou d'un cycle qui ne peut être executer après réduction. Soit il
+      retourne un réseau d'automates temporisés réduit.
+
+  \section{Synthèse de paramètres}
+  \label{sec:parameter-synthesis}
+
+    % Intro.
+    % PTA
+    % Integer parametric problem
+    %   Symbolic PTA states
+    %   General synthesis problem
+    %   Integer synthesis problem
+    %   Bounded integer synthesis problem
+
+    Obtenir une connaissance complète d'un système est souvent
+    impossible. Lorsque c'est le cas, la complexité de conception et de
+    vérification est significativement augmentée. De plus, si cette connaissance
+    du système s'avère erronée, par exemple si l'environnement du système
+    change, alors il est nécessaire de reprendre le travail de conception et de
+    vérification. De fait, l'approche par paramétrisation est une alternative
+    interessante à cette manière de procéder. Dans le cadre plus particulier de
+    la robustesse, la paramétrisation est faite sur les contraintes temporelles
+    pouvant varier du fait des diverses contraintes liées à une implémentation.
+
+    \subsection{Principe de la paramétrisation}
+    
+      Un automate temporisé parametré permet de spécifier une contrainte
+      temporelle paramétrable. Le but est de déterminer s'il existe une valeur
+      de paramètre telle que l'automate accepte une execution. La figure
+      \ref{fig:automate-tempo-param} donne une représentation graphique d'un
+      automate temporisé paramètré.
+
+      \begin{figure}[!ht]
+        \centering \small
+        \begin{tikzpicture}[auto]
+          \draw node[state,initial, initial text={},scale=0.7] (l1) {$l_0$};
+          \draw node[state, right=3cm of l1,scale=0.7] (l2) {$l_1$};
+          \draw node [below of=l1,scale=0.8] {\fbox{$x\leq p$}};
+          \draw[->] (l2) to [bend right=30] node [] {$x:=0$} node [swap] {$b,
+            y\geq q$} (l1) ; 
+          \draw[->] (l1) to [bend right=30] node [] {$a$} node [swap] {$x\geq
+            5$} (l2) ; 
+        \end{tikzpicture}
+        \caption{Répresentation graphique d'un automate temporisé paramètré. \\
+          $P = \{ p, q \}$ est l'ensemble des parmètres de cet automate.}
+        \label{fig:automate-tempo-param}
+      \end{figure}
+
+      Ce problème est indécidable dès l'utilisation de trois horloges et
+      six paramètres pour des modélisations aussi bien à temps dense que
+      discret.
+
+      Il existe cependant des sous classes d'automates temporisés paramètrés
+      permettant de mettre en oeuvre ces techniques. Le problème est que ces
+      sous-classes sont trop sévèrement restreintes syntaxiquement. Leur
+      utilité pratique est à ce jour assez mal définies.
+
+      \paragraph{Syntaxe des automates temporisés paramètrés.} ~
+
+        ~
+      
+        \noindent
+        Un automate temporisé parametré est un tuple $\mathcal{A}_P =
+        (\Sigma,C,P,L,l_0,\mathrm{Inv},E_P)$ tel que :
+    
+        \begin{itemize}
+          \item $\Sigma$ est un alphabet fini ;
+          \item $C$ est un ensemble fini d'horloges ;
+          \item $P$ est un ensemble fini de paramètres ;
+          \item $L$ est un ensemble fini de localités ;
+          \item $l_0 \in S$ est la localité initiale ;
+          \item $\mathrm{Inv}$ est une fonction associant un invariant temporel
+            paramètré à une localité ;
+          \item $E_P$ est un ensemble fini de transitions.
+        \end{itemize}
+
+        ~
+
+        \noindent
+        Une transistion $e \in E_P$ est un tuple $e = (l,\delta,a,\lambda,l')$
+        tel que :
+    
+        \begin{itemize}
+          \item $l$ est l'état d'origine et $l'$ est l'état d'arrivé ;
+          \item $\delta$ est une contrainte temporelle paramètrée sur $C \cup P$
+            ;
+          \item $a$ est un symbole de l'aphabet $\Sigma$ ;
+          \item $\lambda \subseteq C$ est un ensemble d'horloges à
+            réinitialiser.
+        \end{itemize}
+        
+      \paragraph{Sémantique des automates temporisés paramètrés.} ~
+      
+        ~
+        
+        Ici, une valuation $v$ s'applique à un ensemble de paramètres $P$. Cette
+        valuation est définie sur $P \mapsto \mathbb{Q}_{\geq 0}$, par $\forall
+        x \in P$, $v(x) \in \mathbb{Q}$. Une valuation $u$ s'applique à un
+        ensemble d'horloges $C$. Cette valuation est définie sur $C \mapsto
+        \mathbb{Q}_{\geq 0}$, par $\forall x \in C$, $v(x) \in \mathbb{Q}$. La
+        notation $v(\delta)$ (resp. $u(\delta)$), avec $\delta$ une contrainte
+        temporelle, définie une contrainte $\delta'$ telle que les paramètres
+        (resp. les horloges) de $\delta$ sont remplacés par leur valuation
+        par $v$ (resp. $u$).
+
+        ~
+
+        La sémantique d'un automate temporisé paramètré $\mathcal{A}_P$ est
+        définie par le système de transitions temporisées $\tau(\mathcal{A}_P) =
+        (S,s_0,\Sigma,\rightarrow)$, tel que :
+        
+        \begin{itemize}
+          \item $S = \{(l,u) \in L \times \mathbb{R}_{\geq 0}^X ~|~
+            u(v(\mathrm{Inv}(l)))$ est vrai$\}$ ;
+          \item $s_0 = (l_0, \vec{0}_C)$ est l'état initial ;
+          \item $\rightarrow \in S \times (\Sigma \cup \mathbb{R}_{\geq 0})
+            \times S$.
+        \end{itemize}
+        
+        ~
+        
+        La transistion d'action $\xrightarrow{a}$ est définie par $(l,u)
+        \xrightarrow{a} (l',u')$ si et seulement si $l \xrightarrow{\delta,a,
+          \lambda} l' \in E$, $u(v(\delta))$ est vrai et $u' = u[\lambda]$. La
+        transistion de délai $\xrightarrow{t}$ est définie par $(l,u)
+        \xrightarrow{t} (l,u+t)$ pour $t \geq 0$ si et seulement si $\forall t'
+        \in [0,t]$, $(l,u+t') \in S$.
+
+    \subsection{Synthèse de paramètres entiers bornés}
+
+      %% Pour des raisons pratiques les constantes des contraintes temporelles
+      %% sont toujours choisies dans l'ensemble des entiers. Bien que les
+      %% modèles manipulés soit à temps dense il est toujours possible de
+      %% ramener ces constantes à des valeurs entières. De fait, la plupart des
+      %% outils de vérification de modèles temporisés permettent exclusivement
+      %% l'utilisation d'entiers pour spécifier ces constantes.
+      
+      Le travail réalisé \cite{jovanovic14} apporte une nouvelle solution,
+      offrant une sous classe des automates temporisés parametrés conservant
+      suffisamment d'expressivité pour conserver les propriétés
+      d'accessibilités. Cette nouvelle approche restreint les valeurs possibles
+      des paramètres. Celles-ci sont en effet entières et bornées. D'un
+      point de vue pratique, cette restriction n'est pas abhérante puisqu'il est
+      souvent connu une borne, même importante et imprécise, sur le délai
+      modélisé par un paramètre.
+      
+      % Symbolic PTA states
+      \paragraph{États étendus des automates temporisés paramètrés.} ~
+
+        ~
+
+        %La notion d'état d'un automate temporisé paramètré est étendu ainsi que
+        %les opérations qui y sont associées.
+
+        Un état étendu $S$ d'un automate temporisé paramètré $\mathcal{A}_P$ est
+        une paire $(l,Z)$, avec $l$ une localité et $Z$ un ensemble de
+        valuations sur $C \cup P$. Ainsi $Z$ est le polyèdre définisant les
+        valuations possibles pour les horloges et les paramètres de
+        $\mathcal{A}_P$. Les opérations permettant les calculs d'espaces d'états
+        sur un ensemble de valuation $Z$ sont :
+
+        \begin{itemize}
+          \item $Z^\nearrow$ le {\it future} des valuations de $Z$ tel que
+            $Z^\nearrow = \{ v' \mid v \in Z \wedge v'(x) = v(x) + t$, $t \geq
+            0$ si $x \in C$ ; $v'(x) = v(x)$ si $x \in P \}$ ;
+          \item $Z^\swarrow$ le {\it passé} des valuations de $Z$ tel que
+            $Z^\swarrow = \{ v' \mid v \in Z \wedge v'(x) \geq 0$, $v'(x) + t =
+            v(x)$, $t \geq 0$ si $x \in C$ ; $ v'(x) = v(x)$ si $x \in P \}$ ;
+          \item $\mathrm{Init}(\mathcal{A}_P)$ l'état étendu initial de
+            l'automate temporisé paramètré $\mathcal{A}_P$ tel que
+            $\mathrm{Init}(\mathcal{A}_P) = (l_0, \{ v \in \mathbb{R}^{C \cup P}
+            \mid \forall x \in C$, $v(x) \in \{\vec{0}_C\}^\nearrow(x) \wedge
+            v(\mathrm{Inv}(l_0))$ est vrai$\})$ ;
+          \item $\mathrm{Succ}((l, Z), e)$ l'état étendu successeur de $(l, Z)$
+            par la transistion $e = (l, \delta, a, \lambda, l')$ tel que
+            $\mathrm{Succ}((l, Z), e) = (l', (Z \cap \delta)[\lambda]^\nearrow
+            \cap \mathrm{Inv}(l'))$.
+        \end{itemize}
+
+      % General synthesis problem
+      % Integer synthesis problem
+
+      \paragraph{Synthèse de bornes entières.} ~
+      
+        ~
+
+        Soit $\mathcal{A}_P$ un automate temporisé paramètré et $G \subseteq L$
+        un sous-ensemble des localités de $\mathcal{A}_P$. Dans chacun des
+        algorithmes qui suivent, $S$ représente un état de l'automate
+        $\mathcal{A}_P$ et $M$ représente la liste des états précédemment
+        visités. Initialement, $M$ est vide et $S$ égal
+        $\mathrm{Init}(\mathcal{A}_P)$. La notation $S_{\mid P}$ correspond à la
+        projection de $Z$ sur $P$, avec l'état $S = (l,Z)$. Autrement dit
+        $S_{\mid P}$ est le polyèdre définissant les valuations possible pour
+        les paramètres de $P$ dans $S$. Les résultats des algorithmes suivants
+        sont des polyèdres formés par l'union de sous-polyèdres. Ces polyèdres
+        définissent les valuations possibles pour les paramètres de $P$ sur
+        $\mathcal{A}_P$ telles que les propriétés respectives des algorithmes
+        concernés soient vérifiées.
+        
+        ~
+
+        Deux catégories de problèmes sont adressés. La première vise à
+        synthétiser des paramètres tels que l'on atteint le sous-ensemble de
+        localités $G$.
+
+        ~
+
+        $EF_G(S,M) = \left\{
+            \begin{array}{ll}
+                \emptyset & $si $ S \in M, \\ S_{\mid P} & $si $ S \in G,
+                \\ \bigcup_{e \in E} S' = \mathrm{Succ}(S,e)$, $ &
+                \\ $\hspace{1em}$ EF_G(S',M \cup \{S\}) & $sinon.$
+            \end{array}
+        \right.$
+        
+        \vspace{1em}
+
+        La seconde catégorie vise à synthétiser des paramètres tels que le
+        sous-ensemble de localités $G$ soit inévitable.
+
+        ~
+        
+        $AF_G(S,M) = \left\{
+            \begin{array}{ll}
+                \emptyset & $si $ S \in M, \\ S_{\mid P} & $si $ S \in G,
+                \\ (\bigcap_{e \in E} S' = \mathrm{Succ}(S,e)$, $ &
+                \\ $\hspace{1em}$ (AF_G(S',M\cup\{S\}) \cup (\mathbb{R}^P
+                \backslash S'_{\mid P}))) \backslash & \\ (\mathbb{R}^{X\cup P}
+                \backslash (\bigcup_{(l,\delta,a,\lambda,l') \in E} (\delta\cap
+                S)^{\swarrow}))_{\mid P} & $sinon.$
+            \end{array}
+        \right.$
+
+        \vspace{1em}
+
+        La méthode étudiée porte sur la synthèse de valuations entières pour les
+        paramètres. Une valuation $v$ pour un ensemble de paramètres $P$ est
+        alors une fonction définie sur $P \mapsto \mathbb{Z}_{\geq 0}$ par
+        $\forall x \in P$, $v(x) \in \mathbb{Z}$. Les algorithmes ci-dessus sont
+        parfaitement adaptables à cette contrainte sur les valuations.
+
+        % Bounded integer synthesis problem
+
+        ~
+
+        Au lieu d'utiliser une restriction syntaxique sur les gardes et les
+        invariants des automates temporisés paramètrés, l'approche évoquée
+        recherche des valeurs de paramétres sous forme de bornes entières. Ainsi
+        la définition des valuations est une nouvelle fois tranformée de la
+        manière qui suit. Une valuation $v$ pour un ensemble de paramètres $P$
+        est une fonction définie sur $P \mapsto [-M..N]^P$, avec $M, N \in
+        \mathbb{N}$, par $\forall x \in P$, $v(x) \in [-M..N]$. Le fait que les
+        parmètres soient bornés permet à ce problème de paramètrisation d'être
+        décidable.
+
+    \subsection{Implémentation d'un outil}
+    
+      L'outil \textsc{Roméo} \cite{gardey05} manipule un modèle appelé {\it
+        Clock Transition Systems} \cite{lime12}. Celui-ci permet de décrire
+      aussi bien des instances d'automates temporisés que des instances de
+      réseaux de Petri temporels. Le modèle {\it Clock Transition Systems} est
+      basé sur le concept d'intervalle temporel. \textsc{Roméo}
+      réalise l'abstraction de l'espace d'états des sytèmes qu'il manipule grâce
+      à une approche de graphe de classes d'états (cf. section
+      \ref{sec:state-class-graph}). Cette méthode symbolique de
+      répresentation d'espaces d'états est spécifique aux modèles utilisant les
+      intervalles temporelles.
+
+      ~
+
+      La synthèse des paramètres entiers décrite ci-dessus peut naturellement
+      être adaptée au modèle utilisé par \textsc{Roméo} \cite{jovanovic14}.
+      %Celle-ci y a donc été implementée en tant que fonctionnalité.
+
+  \section*{Conclusion}
+
+    La contribution attendue à l'issue de ce stage est un retour sur les
+    approches de robustesse proposées dans le cadre du projet ANR ImpRo grâce à
+    leurs mise en \oe uvre par la réalisation d'une étude de cas non-triviale.
+    
+    Les résultats espérés dans le cadre de cette étude de cas concernent
+    l'ensemble des connaissances pouvant être réunies quant à sa faisabilité
+    vis-à-vis des latences de communication ainsi que les informations utiles
+    quant à l'implementation d'une stratégie plus optimale.
+
+    ~
+
+    %La mise en \oe uvre de la réduction des automates temporisés pose la
+    %question de \dots
+    %
+    %~
+
+    La paramétrisation est ici utilisée à des fins de robustesse. Cependant, son
+    champs d'application est plus vaste. En effet, toute constante temporelle
+    peut être paramètrée dans un tel modèle. La question est alors : Comment
+    mettre en \oe uvre cette approche afin d'obtenir des résultats concernant la
+    robustesse du modèle ? Cette question n'est pas résolue par les études
+    théoriques qui formalisme cette approche.
+
+\bibliographystyle{plain}
+\bibliography{src/main}
+

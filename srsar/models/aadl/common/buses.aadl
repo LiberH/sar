@@ -1,0 +1,26 @@
+package Common::Buses
+public
+
+	bus I2C_Bus
+	end I2C_Bus;
+	
+	bus implementation I2C_Bus.Impl
+	end I2C_Bus.Impl;
+	
+	--
+
+	bus UART_Bus
+	end UART_Bus;
+
+	bus implementation UART_Bus.Impl
+	end UART_Bus.Impl;
+	
+	--
+	
+	bus SPI_Bus
+	end SPI_Bus;
+
+	bus implementation SPI_Bus.Impl
+	end SPI_Bus.Impl;
+	
+end Common::Buses;

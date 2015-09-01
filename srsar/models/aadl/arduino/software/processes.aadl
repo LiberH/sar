@@ -1,0 +1,25 @@
+package Arduino::Processes
+public
+	with Base_Types;
+	with Arduino::Threads;
+	
+	process Arduino_Application
+	features
+		Vision_Data    : in data port;
+		Presence_Data  : in data port Base_Types::Boolean;
+		I2C_Message    : in out event data port;
+	end Arduino_Application;
+	
+	process implementation Arduino_Application.Impl
+	subcomponents
+		I2C_ISR   : thread Arduino::Threads::I2C_ISR.Impl;
+		Main_Task : thread Arduino::Threads::Main_Task.Impl;
+	
+	connections
+		Port1 : port Vision_Data              -> Main_Task.Vision_DataIn;
+		Port2 : port Presence_Data            -> I2C_ISR.Presence_Data;
+		Port6 : port I2C_Message              -> I2C_ISR.I2C_Message;
+		Port7 : port Main_Task.Vision_DataOut -> I2C_ISR.Vision_Data;
+	end Arduino_Application.Impl;
+
+end Arduino::Processes;

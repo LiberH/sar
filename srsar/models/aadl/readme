@@ -1,0 +1,20 @@
+
+Do model drivers as servers subprograms?
+How to model exclusivity on NXT IO ports?
+
+--
+
+The AVR microprocessor could be modeled as a device.
+
+  The Architecture Analysis & Design Language (AADL): An introduction
+  > "A processor is an abstraction of hardware and associate software that is
+     responsible for scheduling and executing threads."
+  > "Device abstraction represent entities that interface with the external
+     environment of an application system."
+
+  LEGO MINDSTORMS NXT Hardware Developer Kit
+  > "The main tasks for the AVR controller are power management, creating PWM
+     output signals for the three motors, and performing A/D conversion form
+     the input ports."
+
+Yet, modeling it as a processor is more consistent and easier to understand.

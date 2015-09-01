@@ -1,0 +1,98 @@
+
+OIL_VERSION = "2,5" : "test";
+
+IMPLEMENTATION trampoline {
+  TASK {
+    UINT32 STACKSIZE = 512;
+    UINT32 PRIORITY  = 1;
+  };
+
+  ISR {
+    UINT32 STACKSIZE = 512;
+  };
+};
+
+CPU ATMEL_AT91SAM7S256 {
+  OS TRAMPOLINE {
+    STATUS       = EXTENDED;
+    STARTUPHOOK  = FALSE;
+    ERRORHOOK    = FALSE;
+    SHUTDOWNHOOK = FALSE;
+    PRETASKHOOK  = FALSE;
+    POSTTASKHOOK = FALSE;
+    SYSTEM_CALL  = TRUE;
+
+    BUILD = TRUE {
+      APP_SRC              = "main.c";
+      APP_SRC              = "api.c";
+      APP_NAME             = "app";
+      TRAMPOLINE_BASE_PATH = "${TRAMPOLINE_BASE_PATH}";
+
+      COMPILER = "arm-elf-gcc";
+      CFLAGS   = "-g -c -ffreestanding -fsigned-char -mcpu=arm7tdmi -Os -Winline -Wall -Werror-implicit-function-declaration --param max-inline-insns-single=1000 -ffunction-sections -fdata-sections -std=gnu99";
+
+      ASSEMBLER = "arm-elf-as";
+      ASFLAGS   = "-g -mcpu=arm7tdmi-s --fatal-warnings";
+
+      LINKER  = "arm-elf-ld";
+      LDFLAGS = "-g --allow-multiple-definition --gc-sections";
+      LDFLAGS = "-L${ARM_LIBGCC_PATH} -lgcc";
+      LDFLAGS = "-L${ARM_LIBC_PATH} -lc";
+    };
+
+    MEMMAP = TRUE {
+      COMPILER          = gcc;
+      ASSEMBLER         = gnu_as;
+      LINKER            = gnu_ld { SCRIPT = "script.ld"; };
+      MEMORY_PROTECTION = FALSE;
+    };
+  };
+
+  APPMODE AppMode {};
+  
+  ALARM TaskAlarm{
+    COUNTER   = SystemCounter;
+    AUTOSTART = TRUE {
+      APPMODE   = AppMode;
+      ALARMTIME = 1; 
+      CYCLETIME = 30; // ms.
+    };
+    ACTION = ACTIVATETASK {
+      TASK = Task;
+    };
+  };
+
+  TASK Task {
+    AUTOSTART = TRUE {
+      APPMODE = AppMode;
+    };
+    ACTIVATION = 1;
+    PRIORITY   = 2;
+    SCHEDULE   = NON;
+  };
+	
+  ALARM DisplayAlarm{
+    COUNTER   = SystemCounter;
+    AUTOSTART = TRUE {
+      APPMODE   = AppMode;
+      ALARMTIME = 1;
+      CYCLETIME = 100; // ms.
+    };
+    ACTION = ACTIVATETASK {
+      TASK = Display;
+    };
+  };
+
+  TASK Display {
+    AUTOSTART  = FALSE;
+    ACTIVATION = 1;
+    PRIORITY   = 1;
+    SCHEDULE   = FULL;
+  };
+   	
+  ISR StopISR {
+    CATEGORY = 2;
+    SOURCE   = button_stop;
+    PRIORITY = 3;
+  };
+};

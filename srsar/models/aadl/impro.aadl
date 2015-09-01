@@ -1,0 +1,47 @@
+package Demo
+public
+	with Common::Buses;
+	with NXT::Systems;
+	with NXT::Devices;
+	with Arduino::Systems; 
+	with Arduino::Devices;
+	
+	system Demo
+	end Demo;
+	
+	system implementation Demo.Impl
+	subcomponents
+		NXT              : system NXT::Systems::NXT_System.Impl;
+		Distance_Sensor  : device NXT::Devices::DIST_Nx.v3;
+		Wheel_Motor      : device NXT::Devices::NXT_Motor.Impl;
+		Racket_Motor     : device NXT::Devices::NXT_Motor.Impl;
+		Button           : device NXT::Devices::NXT_Button.Impl;
+
+		Arduino          : system Arduino::Systems::Arduino_System.Impl;
+		Vision_Sensor    : device Arduino::Devices::CMUcam.v4;
+		Presence_Sensor  : device Arduino::Devices::Pololu_1134.with_GP2Y0D810;
+		
+	connections
+		-- Port	
+		RJ12_Button          : feature group NXT.Port1 <-> Button.NXT_Plug;
+		RJ12_Distance_Sensor : feature group NXT.Port2 <-> Distance_Sensor.NXT_Plug;
+		RJ12_Arduino         : feature group NXT.Port3 <-> Arduino.NXT_Plug;
+		RJ12_Wheel_Motor     : feature group NXT.PortA <-> Wheel_Motor.NXT_Socket;
+		RJ12_Racket_Motor    : feature group NXT.PortB <-> Racket_Motor.NXT_Socket;
+
+		Shield_Vision_Sensor : feature group Arduino.Shield_Socket <-> Vision_Sensor.Arduino_Shield_Plug;
+		DIO_Presence_Sensor  : port Presence_Sensor.Presence        -> Arduino.DIO0;
+		
+		-- Bus Access
+		I2C1_NXT             : bus access NXT.Port1_I2C     -> Arduino.I2C_Req;
+		I2C2_NXT             : bus access NXT.Port2_I2C     -> Distance_Sensor.I2C_Req;
+		UART_Arduino         : bus access Arduino.UART_Prov -> Vision_Sensor.UART_Req;
+		
+	properties
+	    --Actual_Connection_Binding => (reference (I2C_Bus1))    applies to NXTto_Arduino;
+	    --Actual_Connection_Binding => (reference (TTL_Bus))     applies to ARDto_Vision_Sensor;
+    	--Actual_Connection_Binding => (reference (I2C_Bus2))    applies to NXTto_Distance_Sensor;
+    	none;
+	end Demo.Impl;
+	
+end Demo;

@@ -1,0 +1,45 @@
+-- TODO
+-- > Add properties
+
+package NXT::Processors
+public
+	with Common::Memories;
+	with Common::Buses;
+
+	processor AT91SAM7S256
+	features
+		I2C_Req  : requires bus access Common::Buses::I2C_Bus;
+		I2C_Req1 : requires bus access Common::Buses::I2C_Bus;
+		I2C_Req2 : requires bus access Common::Buses::I2C_Bus;
+		I2C_Req3 : requires bus access Common::Buses::I2C_Bus;
+		I2C_Req4 : requires bus access Common::Buses::I2C_Bus;
+		UART_Req : requires bus access Common::Buses::UART_Bus;
+		SPI_Req  : requires bus access Common::Buses::SPI_Bus;
+		
+	properties
+		-- Scheduling_Protocol => <HPF>; -- Not in predeclared properties
+		none;
+	end AT91SAM7S256;
+	
+	-- Could be modeled as a device (cf. README).
+	processor implementation AT91SAM7S256.Impl
+	subcomponents
+		Flash_Memory : memory Common::Memories::Flash_Memory.Impl;
+		RAM          : memory Common::Memories::RAM.Impl;
+	end AT91SAM7S256.Impl;
+	
+	---
+	
+	processor ATMEGA48
+	-- NXT AVR processor
+	features
+		I2C_Req : requires bus access Common::Buses::I2C_Bus;
+	end ATMEGA48;
+	
+	processor implementation ATMEGA48.Impl
+	subcomponents
+		Flash_Memory : memory Common::Memories::Flash_Memory.Impl;
+		RAM          : memory Common::Memories::RAM.Impl;
+	end ATMEGA48.Impl;
+
+end NXT::Processors;

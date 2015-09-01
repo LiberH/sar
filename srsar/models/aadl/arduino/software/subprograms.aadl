@@ -1,0 +1,21 @@
+package Arduino::Subprograms
+public
+	with Base_Types;
+
+	subprogram Compute_Vision
+	features
+		Vision_DataIn  : in parameter;
+		Vision_DataOut : out parameter;
+	end Compute_Vision;
+	
+	--
+	
+	subprogram Compute_I2C_Request
+	features
+		I2C_Request   : in parameter;
+		Vision_Data   : in parameter;
+		Presence_Data : in parameter Base_Types::Boolean;
+		I2C_response  : out parameter;
+	end Compute_I2C_Request;
+	
+end Arduino::Subprograms;

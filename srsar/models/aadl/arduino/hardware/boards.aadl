@@ -1,0 +1,36 @@
+-- TODO
+-- > Arduino system as abstract
+-- > Check where to declare features
+
+package Arduino::Boards
+public
+	with Arduino::Processors;
+	with Common::Buses;
+	with Arduino::Feature_Groups;
+	with NXT::Ports;
+	with Base_Types;
+
+	system Arduino_Uno
+	-- See http://www.arduino.cc/en/Main/ArduinoBoardUno
+	features
+		I2C_Req       : requires bus access Common::Buses::I2C_Bus;
+		UART_Prov     : provides bus access Common::Buses::UART_Bus;
+		NXT_Plug      : feature group NXT::Ports::Input_Plug;
+		Shield_Socket : feature group Arduino::Feature_Groups::Shield_Socket;	
+		DIO0          : in out event data port Base_Types::Boolean;	
+	end Arduino_Uno;
+
+	--
+	
+	system implementation Arduino_Uno.Impl
+	subcomponents
+		UART_Bus : bus Common::Buses::UART_Bus.Impl;
+		AVR      : processor Arduino::Processors::ATMEGA328.impl;
+	
+	connections
+	    I2C_AVR   : bus access I2C_Req  -> AVR.I2C_Req;   
+		UART_AVR  : bus access UART_Bus -> AVR.UART_Req;
+	    UART_Port : bus access UART_Bus -> UART_Prov;
+	end Arduino_Uno.Impl;
+
+end Arduino::Boards;
